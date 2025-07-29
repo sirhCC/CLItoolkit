@@ -419,7 +419,12 @@ We're following a comprehensive development plan with significant progress made:
 - [x] **Command Builder Pattern** - Fluent API for command definition
 - [x] **Execution Framework** - Async execution with context management
 
-### Phase 4: Advanced Features 📋 PLANNED
+### Phase 4: Configuration & Dependency Injection 🚧 IN PROGRESS
+
+- [x] **Configuration System** - Multi-layer configuration with validation
+- [ ] **Dependency Injection** - Service container with lifecycle management
+
+### Phase 5: Advanced Features 📋 PLANNED
 
 - [ ] Plugin system & extensibility
 - [ ] Interactive wizards & prompts
@@ -436,31 +441,39 @@ We're following a comprehensive development plan with significant progress made:
 🗂️  Command Registry:     ████████████████████ 100%
 🎯  Command Builder:      ████████████████████ 100%
 🚀  Execution Framework: ████████████████████ 100%
+🔧  Configuration:       ████████████████████ 100%
+📦  Dependency Injection: ░░░░░░░░░░░░░░░░░░░░   0%
 🧩  Advanced Features:   ░░░░░░░░░░░░░░░░░░░░   0%
 ```
 
-**Overall Progress: ~83% Complete**
+**Overall Progress: ~85% Complete**
 
 ## 🔧 Technologies & Dependencies
 
 ### Core Technologies
+
 - **TypeScript 5.8.3** - Type-safe development with strict mode
 - **Node.js** - Runtime environment
 - **Zod** - Runtime validation and type coercion
 - **Jest** - Testing framework with comprehensive coverage
+- **YAML** - YAML configuration file support
+- **TOML** - TOML configuration file support
 
 ### Development Tools
+
 - **ESLint** - Code linting with TypeScript rules
 - **Prettier** - Code formatting
 - **ts-node** - TypeScript execution for development
 - **@types/node** - Node.js type definitions
 
 ### Build & Distribution
+
 - **TypeScript Compiler** - ES2022 target with ESM modules
 - **Source Maps** - Debug support
 - **Declaration Files** - TypeScript definitions export
 
 ### Key Features Implemented
+
 - ✅ **Argument Parser** - Advanced tokenization with flag/option support
 - ✅ **Validation Engine** - Zod schemas with custom validation rules  
 - ✅ **Command Registry** - Hierarchical commands with lazy loading
@@ -471,9 +484,15 @@ We're following a comprehensive development plan with significant progress made:
   - Cancellation support with CancellationToken
   - Advanced command executor with timeout handling
   - Enhanced CLI framework with full integration
+- ✅ **Configuration System** - Complete Phase 4.1 implementation:
+  - Multi-layer configuration (CLI args, env vars, config files)
+  - Support for JSON, YAML, and TOML configuration files
+  - Configuration precedence resolution and validation
+  - Type-safe configuration access with Zod schemas
+  - Environment variable transformation and parsing
 - ✅ **Type System** - Comprehensive interfaces and type definitions
 - ✅ **Error Handling** - Custom error hierarchy with context
-- ✅ **Testing Suite** - 301 tests with 100% coverage
+- ✅ **Testing Suite** - 327 tests with 98%+ coverage (26 config tests + 301 core tests)
 
 ## 📖 Documentation
 
