@@ -3,44 +3,86 @@
   "version": "0.0.1",
   "description": "A modern, extensible, and developer-friendly CLI toolkit framework.",
   "main": "dist/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/esm/core/index.js",
+      "require": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "build": "tsc",
-    "dev": "ts-node src/index.ts",
+    "build": "npm run build:clean && tsc && npm run build:esm",
+    "build:clean": "rimraf dist",
+    "build:esm": "tsc --module ESNext --outDir dist/esm",
+    "build:analyze": "npm run build && bundlesize",
+    "dev": "ts-node --transpile-only src/index.ts",
+    "dev:watch": "ts-node-dev --respawn --transpile-only src/index.ts",
     "start": "node dist/index.js",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --ext .ts --fix",
+    "type-check": "tsc --noEmit --incremental",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\""
+    "test:perf": "node --expose-gc dist/benchmarks/performance.js",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" --cache",
+    "validate": "npm run type-check && npm run lint && npm run test && npm run build",
+    "perf": "npm run build && node dist/benchmarks/performance.js"
   },
   "keywords": [
     "cli",
     "toolkit",
-    "framework",
+    "framework", 
     "typescript",
     "terminal",
-    "console"
+    "console",
+    "performance",
+    "zero-copy"
   ],
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^20.19.9",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "bundlesize": "^0.18.2",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
     "jest": "^29.7.0",
     "prettier": "^3.2.5",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "yaml": "^2.8.0",
     "zod": "^4.0.11"
-  }
+  },
+  "bundlesize": [
+    {
+      "path": "./dist/index.js",
+      "maxSize": "60 kB"
+    }
+  ]
 }

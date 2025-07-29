@@ -1,5 +1,6 @@
 /**
  * @fileoverview Enhanced argument parser with validation and type coercion
+ * Optimized with object pooling for high-performance parsing
  */
 
 import { z } from 'zod';
@@ -14,6 +15,55 @@ import {
   IParsingOptions,
   ISubcommandConfig,
 } from '../types/validation';
+
+// High-performance object pool for parse results
+class ParseResultPool {
+  private static readonly pool: IEnhancedParseResult[] = [];
+  private static readonly maxPoolSize = 50;
+
+  static acquire(): IEnhancedParseResult {
+    const result = this.pool.pop();
+    if (result) {
+      // Reset the pooled object
+      result.command = '';
+      result.arguments = {};
+      result.options = {};
+      result.positional.length = 0;
+      result.unknown.length = 0;
+      result.validation = { success: true, data: {}, errors: [], warnings: [] };
+      result.help = false;
+      result.version = false;
+      delete result.subcommand;
+      return result;
+    }
+
+    // Create new if pool is empty
+    return {
+      command: '',
+      arguments: {},
+      options: {},
+      positional: [],
+      unknown: [],
+      validation: { success: true, data: {}, errors: [], warnings: [] },
+      help: false,
+      version: false,
+    };
+  }
+
+  static release(result: IEnhancedParseResult): void {
+    if (this.pool.length < this.maxPoolSize) {
+      this.pool.push(result);
+    }
+  }
+
+  static getPoolStats(): { size: number; maxSize: number; hitRate: number } {
+    return {
+      size: this.pool.length,
+      maxSize: this.maxPoolSize,
+      hitRate: this.pool.length / this.maxPoolSize
+    };
+  }
+}
 
 /**
  * Enhanced argument parser with validation and type coercion
@@ -77,45 +127,58 @@ export class ArgumentParser {
   }
 
   /**
-   * Parse command line arguments with validation
+   * Parse command line arguments with validation (optimized with object pooling)
    */
   async parse(args: string[]): Promise<IEnhancedParseResult> {
-    const result: IEnhancedParseResult = {
-      command: '',
-      arguments: {},
-      options: {},
-      positional: [],
-      unknown: [],
-      validation: { success: true, data: {}, errors: [], warnings: [] },
-      help: false,
-      version: false,
-    };
+    // Use pooled object for better performance
+    const result = ParseResultPool.acquire();
 
-    if (args.length === 0) {
-      // Still need to validate required arguments and apply defaults
+    try {
+      if (args.length === 0) {
+        // Still need to validate required arguments and apply defaults
+        return this.parseWithConfig(args, result, this.arguments, this.options);
+      }
+
+      // Check for subcommands first
+      const potentialSubcommand = args[0];
+      if (!potentialSubcommand.startsWith('-') && this.subcommands.has(potentialSubcommand)) {
+        result.command = potentialSubcommand;
+        result.subcommand = potentialSubcommand;
+        const subcommandConfig = this.subcommands.get(potentialSubcommand)!;
+        
+        // Parse with subcommand's arguments and options
+        return this.parseWithConfig(args.slice(1), result, subcommandConfig.arguments || [], subcommandConfig.options || []);
+      }
+
+      // Only treat first argument as a command if there are subcommands defined
+      // and this argument doesn't match any subcommand (for error handling)
+      if (!potentialSubcommand.startsWith('-') && this.subcommands.size > 0) {
+        result.command = potentialSubcommand;
+        return this.parseWithConfig(args.slice(1), result, this.arguments, this.options);
+      }
+
+      // Parse without command (all arguments are positional/options)
       return this.parseWithConfig(args, result, this.arguments, this.options);
+    } catch (error) {
+      // Don't release on error - let caller handle cleanup
+      throw error;
     }
+  }
 
-    // Check for subcommands first
-    const potentialSubcommand = args[0];
-    if (!potentialSubcommand.startsWith('-') && this.subcommands.has(potentialSubcommand)) {
-      result.command = potentialSubcommand;
-      result.subcommand = potentialSubcommand;
-      const subcommandConfig = this.subcommands.get(potentialSubcommand)!;
-      
-      // Parse with subcommand's arguments and options
-      return this.parseWithConfig(args.slice(1), result, subcommandConfig.arguments || [], subcommandConfig.options || []);
-    }
+  /**
+   * Release a parse result back to the pool (call this when done with the result)
+   */
+  static releaseResult(result: IEnhancedParseResult): void {
+    ParseResultPool.release(result);
+  }
 
-    // Only treat first argument as a command if there are subcommands defined
-    // and this argument doesn't match any subcommand (for error handling)
-    if (!potentialSubcommand.startsWith('-') && this.subcommands.size > 0) {
-      result.command = potentialSubcommand;
-      return this.parseWithConfig(args.slice(1), result, this.arguments, this.options);
-    }
-
-    // Parse without command (all arguments are positional/options)
-    return this.parseWithConfig(args, result, this.arguments, this.options);
+  /**
+   * Get performance statistics
+   */
+  static getPerformanceStats(): { poolStats: any } {
+    return {
+      poolStats: ParseResultPool.getPoolStats()
+    };
   }
 
   /**
