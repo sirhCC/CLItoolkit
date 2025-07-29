@@ -334,11 +334,15 @@ await container.withScope(async (scope) => {
 cli-toolkit-framework/
 ├── 📁 src/
 │   ├── 📁 core/             # Core implementations
-│   │   ├── argument-parser.ts    # Advanced argument parsing engine
+│   │   ├── argument-parser.ts    # Advanced argument parsing engine with object pooling
 │   │   ├── base-implementations.ts # Base command, context, result classes
 │   │   ├── cli-framework.ts      # Main CLI framework
 │   │   ├── command-builder.ts    # Fluent command builder with validation
-│   │   └── command-registry.ts   # Command registry with lazy loading
+│   │   ├── command-registry.ts   # Command registry with lazy loading
+│   │   ├── enhanced-types.ts     # Branded types and advanced TypeScript patterns
+│   │   └── optimized-parser.ts   # Zero-copy parsing patterns
+│   ├── 📁 utils/            # Utility modules
+│   │   └── performance.ts   # Performance monitoring and memory tracking
 │   ├── 📁 types/            # TypeScript definitions
 │   │   ├── builder.ts       # Command builder interfaces
 │   │   ├── command.ts       # Command interfaces & types
@@ -347,7 +351,7 @@ cli-toolkit-framework/
 │   │   ├── registry.ts      # Command registry interfaces
 │   │   └── validation.ts    # Validation types & schemas
 │   └── index.ts             # Main entry point & exports
-├── 📁 tests/
+├── 📁 tests/                # Test suites (393 tests)
 │   ├── 📁 core/             # Core functionality tests
 │   │   ├── argument-parser.test.ts    # Argument parsing tests (61 tests)
 │   │   ├── base-implementations.test.ts # Base classes tests (26 tests)
@@ -358,6 +362,11 @@ cli-toolkit-framework/
 │   │   └── test-utils.test.ts         # Test helper tests
 │   └── 📁 types/            # Type definition tests
 │       └── command.test.ts             # Command type tests
+├── 📁 scripts/              # Development and utility scripts
+│   ├── phase1-summary.js    # Phase 1 optimization summary
+│   ├── simple-perf-test.js  # Performance testing utility
+│   └── README.md            # Scripts documentation
+├── 📁 benchmarks/           # Performance benchmarking
 ├── 📁 examples/             # Usage examples and demos
 │   └── command-builder-demo.ts        # Command builder examples
 ├── 📁 docs/                 # Documentation and guides
@@ -365,6 +374,13 @@ cli-toolkit-framework/
 │   ├── cli_toolkit_guidelines.md      # Development guidelines & roadmap
 │   ├── PHASE_3_1_COMPLETION.md        # Phase 3.1 completion summary
 │   └── COMMAND_BUILDER_SUMMARY.md     # Command builder technical details
+├── 📁 temp-files/           # Temporary development files (git-ignored)
+│   ├── package.optimized.json         # Experimental package configurations
+│   ├── tsconfig.optimized.json        # Advanced TypeScript experiments
+│   └── README.md            # Temp files documentation
+├── 📁 .vscode/              # VS Code configuration
+│   ├── settings.json        # Editor settings and exclusions
+│   └── launch.json          # Debug configurations
 ├── 📁 dist/                 # Compiled output
 └── 📋 Configuration files (package.json, tsconfig.json, jest.config.js, etc.)
 ```

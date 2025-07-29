@@ -10,6 +10,7 @@ debug-*.json
 # Temporary files
 /temp
 /tmp
+/temp-files
 
 # Logs
 npm-debug.log*
