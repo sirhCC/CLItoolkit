@@ -3,12 +3,11 @@
     "target": "ES2023",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    
     // Enhanced strict type checking for better performance and safety
     "strict": true,
     "noImplicitAny": true,
@@ -19,18 +18,15 @@
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    
     // Performance optimizations
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    
     // Advanced features
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": true,
-    
     // Output configuration
     "sourceMap": true,
     "declaration": true,
@@ -38,32 +34,46 @@
     "removeComments": false,
     "preserveConstEnums": true,
     "isolatedModules": true,
-    
     // Enhanced path mapping
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
-      "@/types": ["./types/index"],
-      "@/core": ["./core/index"],
-      "@/utils": ["./utils/index"]
+      "@/*": [
+        "./*"
+      ],
+      "@/types": [
+        "./types/index"
+      ],
+      "@/core": [
+        "./core/index"
+      ],
+      "@/utils": [
+        "./utils/index"
+      ]
     },
-    
     // Library configuration for modern Node.js
-    "lib": ["ES2023", "DOM"],
-    "types": ["node", "jest"],
-    
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
     // Module resolution optimizations
     "resolveJsonModule": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "benchmarks/**/*",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "coverage"
+    "coverage",
+    "*.config.js"
   ],
   "compileOnSave": false
 }

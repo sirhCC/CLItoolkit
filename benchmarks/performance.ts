@@ -35,13 +35,11 @@ class PerformanceBenchmark {
         EnhancedPerformanceMonitor.startMonitoring(30000);
 
         await this.benchmarkArgumentParsing();
-        await this.benchmarkAdvancedObjectPooling();
-        await this.benchmarkZeroCopyParser();
+        await this.benchmarkObjectPooling();
         await this.benchmarkCommandExecution();
 
         this.printResults();
         this.printMemoryAnalysis();
-        this.printPoolAnalytics();
     }
 
     /**
