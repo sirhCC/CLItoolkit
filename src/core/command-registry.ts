@@ -9,9 +9,9 @@ import {
   ICommandLookupResult,
   ICommandRegistryConfig,
   CommandFactory
-} from '@/types/registry';
-import { ICommand } from '@/types/command';
-import { ValidationError, CommandExecutionError, ConfigurationError } from '@/types/errors';
+} from '../types/registry';
+import { ICommand } from '../types/command';
+import { ValidationError, CommandExecutionError, ConfigurationError } from '../types/errors';
 
 /**
  * Default configuration for command registry
@@ -58,7 +58,7 @@ export class CommandRegistry implements ICommandRegistry {
     const commandName = pathArray[pathArray.length - 1];
     const defaultMetadata: ICommandMetadata = {
       name: commandName,
-      description: `${commandName} command`,
+      description: metadata?.description || `${commandName} command`,
       ...metadata
     };
 
@@ -78,11 +78,6 @@ export class CommandRegistry implements ICommandRegistry {
 
     // Store registration
     this.registrations.set(pathKey, registration);
-
-    // Handle cache size limit
-    if (this.config.cacheCommands && this.registrations.size > this.config.maxCacheSize) {
-      await this.evictOldestCache();
-    }
   }
 
   /**
@@ -263,6 +258,14 @@ export class CommandRegistry implements ICommandRegistry {
       
       // Cache the instance if caching is enabled
       if (this.config.cacheCommands) {
+        // Check if we need to evict old cache entries before adding this one
+        const currentLoadedCount = Array.from(this.registrations.values())
+          .filter(reg => reg.isLoaded && reg.instance).length;
+          
+        if (currentLoadedCount >= this.config.maxCacheSize) {
+          await this.evictOldestCache();
+        }
+        
         registration.instance = command;
       }
       
