@@ -6,6 +6,7 @@
 export { CliFramework } from './core/cli-framework';
 export { ArgumentParser } from './core/argument-parser';
 export { CommandRegistry } from './core/command-registry';
+export { CommandBuilder, createCommand } from './core/command-builder';
 
 // Base implementations
 export { BaseCommand, CommandContext, CommandResult } from './core/base-implementations';
