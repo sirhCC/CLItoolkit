@@ -92,7 +92,8 @@ export class ArgumentParser {
     };
 
     if (args.length === 0) {
-      return result;
+      // Still need to validate required arguments and apply defaults
+      return this.parseWithConfig(args, result, this.arguments, this.options);
     }
 
     // Check for subcommands first
@@ -106,13 +107,14 @@ export class ArgumentParser {
       return this.parseWithConfig(args.slice(1), result, subcommandConfig.arguments || [], subcommandConfig.options || []);
     }
 
-    // Check if first argument is a command
-    if (!potentialSubcommand.startsWith('-')) {
+    // Only treat first argument as a command if there are subcommands defined
+    // and this argument doesn't match any subcommand (for error handling)
+    if (!potentialSubcommand.startsWith('-') && this.subcommands.size > 0) {
       result.command = potentialSubcommand;
       return this.parseWithConfig(args.slice(1), result, this.arguments, this.options);
     }
 
-    // Parse without command
+    // Parse without command (all arguments are positional/options)
     return this.parseWithConfig(args, result, this.arguments, this.options);
   }
 
@@ -127,8 +129,8 @@ export class ArgumentParser {
   ): Promise<IEnhancedParseResult> {
     const tokenized = this.tokenize(args);
     
-    // Parse options first
-    await this.parseOptions(tokenized.options, result, optionDefs);
+    // Parse options using original arguments to preserve order
+    await this.parseOptions(args, result, optionDefs);
     
     // Check for help/version flags
     if (result.options.help || result.options.h) {
@@ -141,13 +143,10 @@ export class ArgumentParser {
       return result;
     }
 
-    // Parse positional arguments
-    await this.parseArguments(tokenized.positional, result, argumentDefs);
+    // Parse positional arguments (parseOptions already built result.positional correctly)
+    await this.parseArguments(result.positional, result, argumentDefs);
     
-    // Store unknown options in permissive mode
-    if (this.config.mode === 'permissive') {
-      result.unknown = tokenized.unknown;
-    }
+    // Note: parseOptions already handles unknown options in permissive mode
 
     // Validate the complete result
     await this.validateResult(result, argumentDefs, optionDefs);
@@ -185,16 +184,7 @@ export class ArgumentParser {
         // Long option without equals
         else if (arg.startsWith('--')) {
           options.push(arg);
-          // Check if next argument is the value
-          const nextArg = args[i + 1];
-          if (nextArg && !nextArg.startsWith('-')) {
-            const optionName = arg.slice(2);
-            const optionDef = this.findOption(optionName);
-            if (optionDef && !optionDef.flag) {
-              options.push(nextArg);
-              i++; // Skip next argument
-            }
-          }
+          // Don't move values here - let parseOptions handle value association
         }
         // Short option(s)
         else if (arg.length > 1) {
@@ -205,28 +195,11 @@ export class ArgumentParser {
             for (let j = 0; j < shortOptions.length; j++) {
               const shortOpt = shortOptions[j];
               options.push(`-${shortOpt}`);
-              
-              // If this option takes a value and it's the last short option
-              const optionDef = this.findOptionByAlias(shortOpt);
-              if (optionDef && !optionDef.flag && j === shortOptions.length - 1) {
-                const nextArg = args[i + 1];
-                if (nextArg && !nextArg.startsWith('-')) {
-                  options.push(nextArg);
-                  i++; // Skip next argument
-                }
-              }
+              // Don't move values here - let parseOptions handle value association
             }
           } else {
             options.push(arg);
-            // Check if next argument is the value
-            const nextArg = args[i + 1];
-            if (nextArg && !nextArg.startsWith('-')) {
-              const optionDef = this.findOptionByAlias(shortOptions);
-              if (optionDef && !optionDef.flag) {
-                options.push(nextArg);
-                i++; // Skip next argument
-              }
-            }
+            // Don't move values here - let parseOptions handle value association
           }
         }
         
@@ -252,89 +225,167 @@ export class ArgumentParser {
   }
 
   /**
-   * Parse options from tokenized arguments
+   * Parse options and their values from original arguments
    */
   private async parseOptions(
-    optionTokens: string[],
+    args: string[],
     result: IEnhancedParseResult,
     optionDefs: IValidatedOption[]
   ): Promise<void> {
-    let i = 0;
+    const consumedIndices = new Set<number>();
     
-    while (i < optionTokens.length) {
-      const token = optionTokens[i];
+    // First pass: process options and mark consumed indices
+    let i = 0;
+    while (i < args.length) {
+      const arg = args[i];
       
-      if (!token.startsWith('-')) {
+      // Skip if already consumed
+      if (consumedIndices.has(i)) {
         i++;
         continue;
       }
 
-      let optionName: string;
-      let optionValue: string | undefined;
+      // Skip non-options in first pass
+      if (!arg.startsWith('-')) {
+        i++;
+        continue;
+      }
 
-      // Long option with equals (--option=value)
-      if (token.startsWith('--') && token.includes('=')) {
-        const [name, ...valueParts] = token.slice(2).split('=');
+      let optionName: string | undefined;
+      let optionValue: string | undefined;
+      let consumed = 1; // How many arguments this option consumes
+
+      // Parse the option
+      if (arg.startsWith('--') && arg.includes('=')) {
+        // Long option with equals (--option=value)
+        const [name, ...valueParts] = arg.slice(2).split('=');
         optionName = name;
         optionValue = valueParts.join('=');
-      }
-      // Long option (--option)
-      else if (token.startsWith('--')) {
-        optionName = token.slice(2);
-        // Value might be next token
-        if (i + 1 < optionTokens.length && !optionTokens[i + 1].startsWith('-')) {
-          const optionDef = this.findOption(optionName);
-          if (optionDef && !optionDef.flag) {
-            optionValue = optionTokens[i + 1];
-            i++; // Skip next token
+      } else if (arg.startsWith('--')) {
+        // Long option (--option)
+        optionName = arg.slice(2);
+        
+        // Check if this option expects a value
+        const optionDef = this.findOption(optionName);
+        if (optionDef && !optionDef.flag) {
+          const nextArg = args[i + 1];
+          if (nextArg && !nextArg.startsWith('-')) {
+            optionValue = nextArg;
+            consumed = 2; // Consume both option and value
           }
         }
-      }
-      // Short option (-o)
-      else {
-        optionName = token.slice(1);
-        // Value might be next token
-        if (i + 1 < optionTokens.length && !optionTokens[i + 1].startsWith('-')) {
-          const optionDef = this.findOptionByAlias(optionName);
-          if (optionDef && !optionDef.flag) {
-            optionValue = optionTokens[i + 1];
-            i++; // Skip next token
+      } else if (arg.startsWith('-') && arg.length > 1) {
+        // Short option(s)
+        const shortOpts = arg.slice(1);
+        
+        if (shortOpts.length > 1) {
+          // Handle combined short options (-abc)
+          for (let j = 0; j < shortOpts.length; j++) {
+            const shortOpt = shortOpts[j];
+            const shortOptDef = optionDefs.find(opt => 
+              opt.alias && (this.config.caseSensitive ? opt.alias === shortOpt : opt.alias.toLowerCase() === shortOpt.toLowerCase())
+            );
+            
+            if (shortOptDef) {
+              if (shortOptDef.flag) {
+                result.options[shortOptDef.name] = true;
+              } else if (j === shortOpts.length - 1) {
+                // Last option in group can take a value
+                const nextArg = args[i + 1];
+                if (nextArg && !nextArg.startsWith('-')) {
+                  result.options[shortOptDef.name] = nextArg;
+                  consumed = 2;
+                } else {
+                  result.options[shortOptDef.name] = true;
+                }
+              } else {
+                result.options[shortOptDef.name] = true;
+              }
+            }
           }
-        }
-      }
-
-      // Find option definition
-      const optionDef = this.findOption(optionName) || this.findOptionByAlias(optionName);
-      
-      if (optionDef) {
-        // Handle multiple values
-        if (optionDef.multiple) {
-          if (!result.options[optionDef.name]) {
-            result.options[optionDef.name] = [];
+          
+          // Mark consumed indices and continue
+          for (let k = 0; k < consumed; k++) {
+            consumedIndices.add(i + k);
           }
-          if (optionValue !== undefined) {
-            result.options[optionDef.name].push(optionValue);
-          } else if (optionDef.flag) {
-            result.options[optionDef.name] = true;
-          }
+          i += consumed;
+          continue;
         } else {
-          result.options[optionDef.name] = optionValue !== undefined ? optionValue : true;
-        }
-      } else if (this.config.mode === 'strict') {
-        result.validation.errors.push({
-          path: ['options', optionName],
-          message: `Unknown option: ${token}`,
-          code: 'unknown_option',
-          received: token,
-        });
-      } else {
-        result.unknown.push(token);
-        if (optionValue !== undefined) {
-          result.unknown.push(optionValue);
+          // Single short option
+          optionName = shortOpts;
+          const optionDef = optionName ? optionDefs.find(opt => {
+            if (!opt.alias || !optionName) return false;
+            return this.config.caseSensitive ? opt.alias === optionName : opt.alias.toLowerCase() === optionName.toLowerCase();
+          }) : undefined;
+          
+          if (optionDef && !optionDef.flag) {
+            const nextArg = args[i + 1];
+            if (nextArg && !nextArg.startsWith('-')) {
+              optionValue = nextArg;
+              consumed = 2;
+            }
+          }
         }
       }
 
-      i++;
+      // Process the option (only if not handled in combined short options above)
+      if (optionName) {
+        // Search in local optionDefs for subcommand options
+        const optionDef = optionDefs.find(opt => 
+          (this.config.caseSensitive ? opt.name === optionName : opt.name.toLowerCase() === optionName.toLowerCase()) ||
+          (opt.alias && (this.config.caseSensitive ? opt.alias === optionName : opt.alias.toLowerCase() === optionName.toLowerCase()))
+        );
+        
+        if (optionDef) {
+          if (optionDef.multiple) {
+            if (!result.options[optionDef.name]) {
+              result.options[optionDef.name] = [];
+            }
+            if (optionValue !== undefined) {
+              result.options[optionDef.name].push(optionValue);
+            } else {
+              result.options[optionDef.name].push(true);
+            }
+          } else {
+            result.options[optionDef.name] = optionValue !== undefined ? optionValue : true;
+          }
+        } else if (this.config.mode === 'strict') {
+          result.validation.errors.push({
+            path: ['options', optionName],
+            message: `Unknown option: ${arg}`,
+            code: 'unknown_option',
+            received: arg,
+          });
+        } else {
+          // Unknown option in permissive mode
+          result.unknown.push(arg);
+          
+          // Check if next argument could be a value for this unknown option
+          if (optionValue !== undefined) {
+            // Value was provided with = syntax
+            result.unknown.push(optionValue);
+          } else if (consumed === 1 && i + 1 < args.length && !args[i + 1].startsWith('-')) {
+            // Next argument could be a value
+            result.unknown.push(args[i + 1]);
+            consumed = 2;
+          }
+        }
+
+        // Mark consumed indices
+        for (let k = 0; k < consumed; k++) {
+          consumedIndices.add(i + k);
+        }
+      }
+      
+      i += consumed;
+    }
+    
+    // Second pass: build positional array from non-consumed arguments
+    result.positional = [];
+    for (let j = 0; j < args.length; j++) {
+      if (!consumedIndices.has(j) && !args[j].startsWith('-')) {
+        result.positional.push(args[j]);
+      }
     }
   }
 
@@ -357,16 +408,8 @@ export class ArgumentParser {
         break;
       } else if (i < positionalTokens.length) {
         result.arguments[argDef.name] = positionalTokens[i];
-      } else if (argDef.required) {
-        result.validation.errors.push({
-          path: ['arguments', argDef.name],
-          message: `Missing required argument: ${argDef.name}`,
-          code: 'missing_argument',
-          expected: argDef.type,
-        });
-      } else if (argDef.defaultValue !== undefined) {
-        result.arguments[argDef.name] = argDef.defaultValue;
       }
+      // Note: required validation and defaults are handled in validateResult
     }
   }
 
