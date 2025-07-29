@@ -43,6 +43,10 @@
     "perf:startup": "npm run build && node --expose-gc dist/src/utils/startup-optimizer.js",
     "perf:memory": "npm run build && node --expose-gc dist/src/utils/memory-optimizer.js",
     "perf:complete": "npm run perf:enhanced && npm run perf:startup && npm run perf:memory",
+    "ai:optimize": "npm run build && node --expose-gc dist/src/utils/ai-performance-optimizer.js",
+    "ai:analyze": "npm run build && node dist/src/utils/workload-pattern-analyzer.js",
+    "ai:prefetch": "npm run build && node dist/src/utils/smart-prefetching.js",
+    "ai:report": "npm run ai:analyze && npm run ai:prefetch && npm run ai:optimize",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" --cache",
     "validate": "npm run type-check && npm run lint && npm run test && npm run build",
     "perf": "npm run build && node dist/benchmarks/performance.js"
