@@ -8,3 +8,7 @@ export {
   BaseCommand,
   SimpleCommand
 } from './base-implementations';
+
+export {
+  CliFramework
+} from './cli-framework';
