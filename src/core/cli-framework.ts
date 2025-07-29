@@ -1,8 +1,9 @@
 import { ICommand, ICommandResult, ICliConfig } from '@/types';
 import { CommandResult, CommandContext } from '@/core/base-implementations';
+import { PerformanceMonitor, monitor, monitorAsync } from '@/utils/performance';
 
 /**
- * Basic command line interface framework
+ * Basic command line interface framework with performance monitoring
  */
 export class CliFramework {
   private readonly commands = new Map<string, ICommand>();
