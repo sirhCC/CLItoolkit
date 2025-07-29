@@ -21,7 +21,7 @@ export interface ServiceRegistration<T = any> {
   /** Service lifetime management */
   lifetime: ServiceLifetime;
   /** Service dependencies */
-  dependencies?: ServiceToken<any>[];
+  dependencies: ServiceToken<any>[] | undefined;
   /** Service metadata */
   metadata?: Record<string, any>;
 }
@@ -33,7 +33,7 @@ export interface ServiceToken<T = any> {
   /** Unique token identifier */
   readonly id: string;
   /** Optional token description */
-  readonly description?: string;
+  readonly description: string | undefined;
   /** Token type information (for TypeScript inference) */
   readonly __type?: T;
 }
@@ -147,7 +147,8 @@ export class EnhancedServiceContainer {
     return this.register({
       token,
       implementation: instance,
-      lifetime: ServiceLifetime.Singleton
+      lifetime: ServiceLifetime.Singleton,
+      dependencies: undefined
     });
   }
 
