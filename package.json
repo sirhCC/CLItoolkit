@@ -38,6 +38,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:perf": "node --expose-gc dist/benchmarks/performance.js",
+    "perf:enhanced": "npm run build && node dist/benchmarks/enhanced-performance.js",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" --cache",
     "validate": "npm run type-check && npm run lint && npm run test && npm run build",
     "perf": "npm run build && node dist/benchmarks/performance.js"
@@ -45,7 +46,7 @@
   "keywords": [
     "cli",
     "toolkit",
-    "framework", 
+    "framework",
     "typescript",
     "terminal",
     "console",

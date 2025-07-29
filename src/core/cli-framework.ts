@@ -105,7 +105,7 @@ export class CliFramework {
       // Parse leading options
       while (i < args.length && args[i]?.startsWith('-')) {
         const arg = args[i];
-        
+
         if (arg?.startsWith('--')) {
           const optionText = arg.slice(2);
           if (optionText.includes('=')) {
@@ -169,7 +169,7 @@ export class CliFramework {
       // Long option (--option or --option=value)
       if (arg.startsWith('--')) {
         const optionText = arg.slice(2);
-        
+
         if (optionText.includes('=')) {
           const [key, ...valueParts] = optionText.split('=');
           if (key) {
@@ -195,7 +195,7 @@ export class CliFramework {
       // Short option (-o)
       else if (arg.startsWith('-') && arg.length > 1) {
         const optionText = arg.slice(1);
-        
+
         if (optionText.length === 1) {
           const nextArg = remaining[i + 1];
           // Only consume next argument as option value if it doesn't start with '-'
@@ -272,12 +272,12 @@ export class CliFramework {
         if (this.config.defaultCommand) {
           return this.executeCommand(this.config.defaultCommand, [], {});
         }
-        
+
         if (this.config.showHelpWhenEmpty) {
           this.showHelp();
           return CommandResult.success();
         }
-        
+
         return CommandResult.failure(1, 'No command specified');
       }
 
@@ -346,7 +346,7 @@ export class CliFramework {
     if (visibleCommands.length > 0) {
       console.log('Commands:');
       const maxNameLength = Math.max(...visibleCommands.map(cmd => cmd.name.length));
-      
+
       for (const command of visibleCommands) {
         const padding = ' '.repeat(maxNameLength - command.name.length + 2);
         console.log(`  ${command.name}${padding}${command.description}`);

@@ -1,24 +1,30 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Run Tests",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": ["--runInBand"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      "name": "Debug TypeScript",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/dist/index.js",
-      "preLaunchTask": "npm: build",
-      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "console": "integratedTerminal"
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Tests",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
+        },
+        {
+            "name": "Debug TypeScript",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/dist/index.js",
+            "preLaunchTask": "npm: build",
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"
+            ],
+            "console": "integratedTerminal"
+        }
+    ]
 }

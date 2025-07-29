@@ -10,11 +10,13 @@
 ## ✨ Features
 
 🎯 **Type-Safe & Modern**
+
 - Built with strict TypeScript for bulletproof type safety
 - Modern ES2022+ features and async/await support
 - Comprehensive error handling with custom error hierarchy
 
 ⚡ **Advanced Argument Parsing**
+
 - Sophisticated tokenization and parsing engine
 - Support for flags, options, and positional arguments
 - Multi-value options and array handling
@@ -22,12 +24,14 @@
 - Subcommand parsing with hierarchical structure
 
 � **Robust Validation**
+
 - Zod-powered schema validation
 - Custom validation rules and type coercion
 - Input sanitization and security checks
 - Conditional validation logic
 
 🗂️ **Command Registry System**
+
 - Hierarchical command organization
 - Lazy loading with intelligent caching
 - Rich metadata support (aliases, categories, tags)
@@ -35,6 +39,7 @@
 - Case-sensitive/insensitive matching
 
 🛠️ **Command Builder Pattern**
+
 - Fluent API for creating commands with method chaining
 - Built-in validation with helpful error messages
 - Lifecycle management with setup/teardown hooks
@@ -42,6 +47,7 @@
 - Comprehensive examples and test coverage
 
 🔧 **Configuration & Dependency Injection**
+
 - Multi-layer configuration system (CLI args, env vars, config files)
 - JSON, YAML, and TOML configuration file support
 - Advanced dependency injection container
@@ -50,6 +56,7 @@
 - Built-in service interfaces for common needs
 
 🚨 **Error Handling & Logging**
+
 - Global error management with classification and recovery
 - Structured logging with multiple transports (Console, File, Custom)
 - Performance tracking and correlation ID support
@@ -58,12 +65,14 @@
 - Production-ready observability features
 
 🧩 **Developer Experience**
+
 - Fluent, chainable API design
 - Comprehensive testing (393+ tests)
 - Rich output formatting capabilities
 - Event-driven architecture with lifecycle hooks
 
 🛡️ **Production Ready**
+
 - Memory-efficient with configurable cache limits
 - Cross-platform compatibility
 - Structured logging and error handling
@@ -74,31 +83,37 @@
 This project has undergone significant performance optimizations as part of **Phase 1: High-Impact Performance Optimizations**. The following enhancements have been implemented and validated:
 
 ### ✅ Object Pooling System
+
 - **Performance Gain**: 60-75% improvement in argument parsing
 - **Implementation**: ParseResultPool with automatic memory management
 - **Impact**: Reduced garbage collection overhead and memory allocation
 
 ### ✅ Advanced TypeScript Configuration
+
 - **Performance Gain**: 47% faster build times
 - **Implementation**: ES2023 target with incremental compilation
 - **Impact**: Optimized compilation and enhanced runtime performance
 
 ### ✅ Performance Monitoring Infrastructure
+
 - **Features**: Built-in PerformanceMonitor and MemoryTracker
 - **Implementation**: Decorators for automatic performance measurement
 - **Impact**: Real-time performance insights and optimization guidance
 
 ### ✅ Enhanced Package Structure
+
 - **Features**: Dual ESM/CJS exports with tree-shaking optimization
 - **Implementation**: Optimized bundling and module resolution
 - **Impact**: Reduced bundle sizes and improved load times
 
 ### ✅ Zero-Copy Parsing Patterns
+
 - **Features**: Memory-efficient argument processing
 - **Implementation**: Direct index-based parsing without intermediate allocations
 - **Impact**: Minimized memory footprint and improved throughput
 
 ### ✅ Enhanced Type Safety
+
 - **Features**: Branded types and advanced TypeScript patterns
 - **Implementation**: Compile-time validation and runtime safety
 - **Impact**: Improved developer experience and reduced runtime errors
@@ -401,6 +416,7 @@ const result = await parser.parse([
 ```
 
 Features include:
+
 - **Boolean flags** (`--flag`, `-f`)
 - **String/number options** (`--option=value`, `--option value`)
 - **Multi-value options** (`--tags tag1 tag2 tag3`)
@@ -670,7 +686,7 @@ We welcome contributions! Please see our [development guidelines](./docs/cli_too
 ### Key Principles
 
 - **Guard Clauses** for clean function logic
-- **Single Responsibility Principle** 
+- **Single Responsibility Principle**
 - **Fluent Interfaces** for chainable APIs
 - **Immutability** to avoid side effects
 - **Test-Driven Development**

@@ -16,54 +16,119 @@ import {
   ISubcommandConfig,
 } from '../types/validation';
 
-// High-performance object pool for parse results
-class ParseResultPool {
-  private static readonly pool: IEnhancedParseResult[] = [];
-  private static readonly maxPoolSize = 50;
+import { AdvancedObjectPool, globalPoolManager } from './advanced-object-pool';
+
+// Enhanced object pool for parse results with advanced analytics
+class EnhancedParseResultPool {
+  private static pool: AdvancedObjectPool<IEnhancedParseResult>;
+
+  static {
+    // Initialize the advanced pool with optimized configuration
+    this.pool = new AdvancedObjectPool<IEnhancedParseResult>(
+      // Factory function
+      () => ({
+        command: '',
+        arguments: {},
+        options: {},
+        positional: [],
+        unknown: [],
+        validation: { success: true, data: {}, errors: [], warnings: [] },
+        help: false,
+        version: false,
+      }),
+      // Reset function
+      (result) => {
+        result.command = '';
+        result.arguments = {};
+        result.options = {};
+        result.positional.length = 0;
+        result.unknown.length = 0;
+        result.validation = { success: true, data: {}, errors: [], warnings: [] };
+        result.help = false;
+        result.version = false;
+        delete result.subcommand;
+      },
+      // Advanced configuration for argument parsing workload
+      {
+        initialSize: 15,        // Start with more objects for common usage
+        minSize: 10,           // Keep minimum pool for responsiveness
+        maxSize: 200,          // Allow growth for high-load scenarios
+        growthFactor: 1.6,     // Moderate growth rate
+        shrinkFactor: 0.7,     // Conservative shrinking
+        optimizationInterval: 25000, // Optimize every 25 seconds
+        warmupEnabled: true,   // Pre-populate for immediate availability
+        metricsEnabled: true,  // Track detailed performance metrics
+        autoOptimize: true     // Enable adaptive sizing
+      },
+      // Validator function to ensure object integrity
+      (result) => {
+        return result &&
+          typeof result.command === 'string' &&
+          Array.isArray(result.positional) &&
+          Array.isArray(result.unknown) &&
+          typeof result.validation === 'object';
+      }
+    );
+
+    // Register with global pool manager for unified analytics
+    globalPoolManager.registerPool(
+      'parseResult',
+      this.pool.acquire.bind(this.pool),
+      this.pool.release.bind(this.pool),
+      {
+        initialSize: 15,
+        minSize: 10,
+        maxSize: 200,
+        warmupEnabled: true,
+        metricsEnabled: true
+      }
+    );
+  }
 
   static acquire(): IEnhancedParseResult {
-    const result = this.pool.pop();
-    if (result) {
-      // Reset the pooled object
-      result.command = '';
-      result.arguments = {};
-      result.options = {};
-      result.positional.length = 0;
-      result.unknown.length = 0;
-      result.validation = { success: true, data: {}, errors: [], warnings: [] };
-      result.help = false;
-      result.version = false;
-      delete result.subcommand;
-      return result;
-    }
-
-    // Create new if pool is empty
-    return {
-      command: '',
-      arguments: {},
-      options: {},
-      positional: [],
-      unknown: [],
-      validation: { success: true, data: {}, errors: [], warnings: [] },
-      help: false,
-      version: false,
-    };
+    return this.pool.acquire();
   }
 
   static release(result: IEnhancedParseResult): void {
-    if (this.pool.length < this.maxPoolSize) {
-      this.pool.push(result);
-    }
+    this.pool.release(result);
   }
 
-  static getPoolStats(): { size: number; maxSize: number; hitRate: number } {
+  static getPoolStats(): {
+    size: number;
+    maxSize: number;
+    hitRate: number;
+    activeObjects: number;
+    peakUsage: number;
+    optimizationCount: number;
+  } {
+    const metrics = this.pool.getMetrics();
     return {
-      size: this.pool.length,
-      maxSize: this.maxPoolSize,
-      hitRate: this.pool.length / this.maxPoolSize
+      size: metrics.size,
+      maxSize: metrics.maxSize,
+      hitRate: metrics.hitRate,
+      activeObjects: metrics.activeObjects,
+      peakUsage: metrics.peakUsage,
+      optimizationCount: metrics.growthEvents + metrics.shrinkEvents
     };
   }
+
+  /**
+   * Get detailed analytics report
+   */
+  static getAnalyticsReport(): string {
+    return this.pool.getAnalyticsReport();
+  }
+
+  /**
+   * Force pool optimization
+   */
+  static optimize(): void {
+    this.pool.forceOptimization();
+  }
 }
+
+// Maintain backward compatibility
+class ParseResultPool extends EnhancedParseResultPool { }
 
 /**
  * Enhanced argument parser with validation and type coercion
@@ -115,14 +180,14 @@ export class ArgumentParser {
    */
   addSubcommand(subcommand: ISubcommandConfig): this {
     this.subcommands.set(subcommand.name, subcommand);
-    
+
     // Add aliases
     if (subcommand.aliases) {
       for (const alias of subcommand.aliases) {
         this.subcommands.set(alias, subcommand);
       }
     }
-    
+
     return this;
   }
 
@@ -145,7 +210,7 @@ export class ArgumentParser {
         result.command = potentialSubcommand;
         result.subcommand = potentialSubcommand;
         const subcommandConfig = this.subcommands.get(potentialSubcommand)!;
-        
+
         // Parse with subcommand's arguments and options
         return this.parseWithConfig(args.slice(1), result, subcommandConfig.arguments || [], subcommandConfig.options || []);
       }
@@ -192,13 +257,13 @@ export class ArgumentParser {
   ): Promise<IEnhancedParseResult> {
     // Parse options using original arguments to preserve order
     await this.parseOptions(args, result, optionDefs);
-    
+
     // Check for help/version flags
     if (result.options.help || result.options.h) {
       result.help = true;
       return result;
     }
-    
+
     if (result.options.version || result.options.v) {
       result.version = true;
       return result;
@@ -206,7 +271,7 @@ export class ArgumentParser {
 
     // Parse positional arguments (parseOptions already built result.positional correctly)
     await this.parseArguments(result.positional, result, argumentDefs);
-    
+
     // Note: parseOptions already handles unknown options in permissive mode
 
     // Validate the complete result
@@ -222,7 +287,7 @@ export class ArgumentParser {
     const options: string[] = [];
     const positional: string[] = [];
     const unknown: string[] = [];
-    
+
     let inOptions = true;
     let i = 0;
 
@@ -250,7 +315,7 @@ export class ArgumentParser {
         // Short option(s)
         else if (arg.length > 1) {
           const shortOptions = arg.slice(1);
-          
+
           // Handle combined short options (-abc)
           if (shortOptions.length > 1) {
             for (let j = 0; j < shortOptions.length; j++) {
@@ -263,7 +328,7 @@ export class ArgumentParser {
             // Don't move values here - let parseOptions handle value association
           }
         }
-        
+
         // Stop at positional in strict mode
         if (this.config.stopAtPositional) {
           inOptions = false;
@@ -272,7 +337,7 @@ export class ArgumentParser {
       // Handle positional arguments
       else if (arg) {
         positional.push(arg);
-        
+
         // Stop parsing options after first positional if configured
         if (this.config.stopAtPositional) {
           inOptions = false;
@@ -294,12 +359,12 @@ export class ArgumentParser {
     optionDefs: IValidatedOption[]
   ): Promise<void> {
     const consumedIndices = new Set<number>();
-    
+
     // First pass: process options and mark consumed indices
     let i = 0;
     while (i < args.length) {
       const arg = args[i];
-      
+
       // Skip if already consumed or arg is undefined
       if (consumedIndices.has(i) || !arg) {
         i++;
@@ -325,7 +390,7 @@ export class ArgumentParser {
       } else if (arg.startsWith('--')) {
         // Long option (--option)
         optionName = arg.slice(2);
-        
+
         // Check if this option expects a value
         const optionDef = this.findOption(optionName);
         if (optionDef && !optionDef.flag) {
@@ -338,16 +403,16 @@ export class ArgumentParser {
       } else if (arg.startsWith('-') && arg.length > 1) {
         // Short option(s)
         const shortOpts = arg.slice(1);
-        
+
         if (shortOpts.length > 1) {
           // Handle combined short options (-abc)
           for (let j = 0; j < shortOpts.length; j++) {
             const shortOpt = shortOpts[j];
             if (!shortOpt) continue;
-            const shortOptDef = optionDefs.find(opt => 
+            const shortOptDef = optionDefs.find(opt =>
               opt.alias && (this.config.caseSensitive ? opt.alias === shortOpt : opt.alias.toLowerCase() === shortOpt.toLowerCase())
             );
-            
+
             if (shortOptDef) {
               if (shortOptDef.flag) {
                 result.options[shortOptDef.name] = true;
@@ -365,7 +430,7 @@ export class ArgumentParser {
               }
             }
           }
-          
+
           // Mark consumed indices and continue
           for (let k = 0; k < consumed; k++) {
             consumedIndices.add(i + k);
@@ -379,7 +444,7 @@ export class ArgumentParser {
             if (!opt.alias || !optionName) return false;
             return this.config.caseSensitive ? opt.alias === optionName : opt.alias.toLowerCase() === optionName.toLowerCase();
           }) : undefined;
-          
+
           if (optionDef && !optionDef.flag) {
             const nextArg = args[i + 1];
             if (nextArg && !nextArg.startsWith('-')) {
@@ -393,11 +458,11 @@ export class ArgumentParser {
       // Process the option (only if not handled in combined short options above)
       if (optionName) {
         // Search in local optionDefs for subcommand options
-        const optionDef = optionDefs.find(opt => 
+        const optionDef = optionDefs.find(opt =>
           (this.config.caseSensitive ? opt.name === optionName : opt.name.toLowerCase() === optionName.toLowerCase()) ||
           (opt.alias && (this.config.caseSensitive ? opt.alias === optionName : opt.alias.toLowerCase() === optionName.toLowerCase()))
         );
-        
+
         if (optionDef) {
           if (optionDef.multiple) {
             if (!result.options[optionDef.name]) {
@@ -421,7 +486,7 @@ export class ArgumentParser {
         } else {
           // Unknown option in permissive mode
           result.unknown.push(arg);
-          
+
           // Check if next argument could be a value for this unknown option
           if (optionValue !== undefined) {
             // Value was provided with = syntax
@@ -441,10 +506,10 @@ export class ArgumentParser {
           consumedIndices.add(i + k);
         }
       }
-      
+
       i += consumed;
     }
-    
+
     // Second pass: build positional array from non-consumed arguments
     result.positional = [];
     for (let j = 0; j < args.length; j++) {
@@ -464,11 +529,11 @@ export class ArgumentParser {
     argumentDefs: IValidatedArgument[]
   ): Promise<void> {
     result.positional = [...positionalTokens];
-    
+
     for (let i = 0; i < argumentDefs.length; i++) {
       const argDef = argumentDefs[i];
       if (!argDef) continue;
-      
+
       if (argDef.multiple) {
         // Take all remaining arguments
         result.arguments[argDef.name] = positionalTokens.slice(i);
@@ -642,7 +707,7 @@ export class ArgumentParser {
       case ArgumentType.NUMBER:
         const num = Number(value);
         return isNaN(num) ? value : num;
-      
+
       case ArgumentType.BOOLEAN:
         if (typeof value === 'boolean') return value;
         if (typeof value === 'string') {
@@ -651,10 +716,10 @@ export class ArgumentParser {
           if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return false;
         }
         return Boolean(value);
-      
+
       case ArgumentType.ARRAY:
         return Array.isArray(value) ? value : [value];
-      
+
       case ArgumentType.JSON:
         if (typeof value === 'string') {
           try {
@@ -664,7 +729,7 @@ export class ArgumentParser {
           }
         }
         return value;
-      
+
       default:
         return String(value);
     }
@@ -800,7 +865,7 @@ export class ArgumentParser {
    * Find option by name
    */
   private findOption(name: string): IValidatedOption | undefined {
-    return this.options.find(opt => 
+    return this.options.find(opt =>
       this.config.caseSensitive ? opt.name === name : opt.name.toLowerCase() === name.toLowerCase()
     );
   }
@@ -809,7 +874,7 @@ export class ArgumentParser {
    * Find option by alias
    */
   private findOptionByAlias(alias: string): IValidatedOption | undefined {
-    return this.options.find(opt => 
+    return this.options.find(opt =>
       opt.alias && (this.config.caseSensitive ? opt.alias === alias : opt.alias.toLowerCase() === alias.toLowerCase())
     );
   }
