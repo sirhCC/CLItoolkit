@@ -96,21 +96,23 @@ export class CliFramework {
     }
 
     // Handle global options that come before command
-    if (args[0].startsWith('-')) {
+    if (args[0]?.startsWith('-')) {
       const options: Record<string, any> = {};
       let command = '';
       const positionalArgs: string[] = [];
 
       let i = 0;
       // Parse leading options
-      while (i < args.length && args[i].startsWith('-')) {
+      while (i < args.length && args[i]?.startsWith('-')) {
         const arg = args[i];
         
-        if (arg.startsWith('--')) {
+        if (arg?.startsWith('--')) {
           const optionText = arg.slice(2);
           if (optionText.includes('=')) {
             const [key, ...valueParts] = optionText.split('=');
-            options[key] = valueParts.join('=');
+            if (key) {
+              options[key] = valueParts.join('=');
+            }
           } else {
             const nextArg = args[i + 1];
             if (nextArg && !nextArg.startsWith('-')) {
@@ -120,7 +122,7 @@ export class CliFramework {
               options[optionText] = true;
             }
           }
-        } else if (arg.length > 1) {
+        } else if (arg?.length > 1) {
           const optionText = arg.slice(1);
           if (optionText.length === 1) {
             const nextArg = args[i + 1];
