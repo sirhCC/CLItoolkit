@@ -1,0 +1,734 @@
+/**
+ * @fileoverview Enhanced argument parser with validation and type coercion
+ */
+
+import { z } from 'zod';
+import {
+  ArgumentType,
+  IValidatedArgument,
+  IValidatedOption,
+  IEnhancedParseResult,
+  IValidationResult,
+  IValidationError,
+  IValidationContext,
+  IParsingOptions,
+  ISubcommandConfig,
+} from '../types/validation';
+
+/**
+ * Enhanced argument parser with validation and type coercion
+ */
+export class ArgumentParser {
+  private arguments: IValidatedArgument[] = [];
+  private options: IValidatedOption[] = [];
+  private subcommands: Map<string, ISubcommandConfig> = new Map();
+  private config: IParsingOptions;
+
+  constructor(config: IParsingOptions = {}) {
+    this.config = {
+      stopAtPositional: false,
+      allowInterspersed: true,
+      addHelp: true,
+      addVersion: false,
+      caseSensitive: true,
+      mode: 'strict',
+      ...config,
+    };
+
+    if (this.config.addHelp) {
+      this.addHelpOption();
+    }
+
+    if (this.config.addVersion) {
+      this.addVersionOption();
+    }
+  }
+
+  /**
+   * Add an argument definition
+   */
+  addArgument(argument: IValidatedArgument): this {
+    this.arguments.push(argument);
+    return this;
+  }
+
+  /**
+   * Add an option definition
+   */
+  addOption(option: IValidatedOption): this {
+    this.options.push(option);
+    return this;
+  }
+
+  /**
+   * Add a subcommand
+   */
+  addSubcommand(subcommand: ISubcommandConfig): this {
+    this.subcommands.set(subcommand.name, subcommand);
+    
+    // Add aliases
+    if (subcommand.aliases) {
+      for (const alias of subcommand.aliases) {
+        this.subcommands.set(alias, subcommand);
+      }
+    }
+    
+    return this;
+  }
+
+  /**
+   * Parse command line arguments with validation
+   */
+  async parse(args: string[]): Promise<IEnhancedParseResult> {
+    const result: IEnhancedParseResult = {
+      command: '',
+      arguments: {},
+      options: {},
+      positional: [],
+      unknown: [],
+      validation: { success: true, data: {}, errors: [], warnings: [] },
+      help: false,
+      version: false,
+    };
+
+    if (args.length === 0) {
+      return result;
+    }
+
+    // Check for subcommands first
+    const potentialSubcommand = args[0];
+    if (!potentialSubcommand.startsWith('-') && this.subcommands.has(potentialSubcommand)) {
+      result.command = potentialSubcommand;
+      result.subcommand = potentialSubcommand;
+      const subcommandConfig = this.subcommands.get(potentialSubcommand)!;
+      
+      // Parse with subcommand's arguments and options
+      return this.parseWithConfig(args.slice(1), result, subcommandConfig.arguments || [], subcommandConfig.options || []);
+    }
+
+    // Check if first argument is a command
+    if (!potentialSubcommand.startsWith('-')) {
+      result.command = potentialSubcommand;
+      return this.parseWithConfig(args.slice(1), result, this.arguments, this.options);
+    }
+
+    // Parse without command
+    return this.parseWithConfig(args, result, this.arguments, this.options);
+  }
+
+  /**
+   * Parse arguments with specific configuration
+   */
+  private async parseWithConfig(
+    args: string[],
+    result: IEnhancedParseResult,
+    argumentDefs: IValidatedArgument[],
+    optionDefs: IValidatedOption[]
+  ): Promise<IEnhancedParseResult> {
+    const tokenized = this.tokenize(args);
+    
+    // Parse options first
+    await this.parseOptions(tokenized.options, result, optionDefs);
+    
+    // Check for help/version flags
+    if (result.options.help || result.options.h) {
+      result.help = true;
+      return result;
+    }
+    
+    if (result.options.version || result.options.v) {
+      result.version = true;
+      return result;
+    }
+
+    // Parse positional arguments
+    await this.parseArguments(tokenized.positional, result, argumentDefs);
+    
+    // Store unknown options in permissive mode
+    if (this.config.mode === 'permissive') {
+      result.unknown = tokenized.unknown;
+    }
+
+    // Validate the complete result
+    await this.validateResult(result, argumentDefs, optionDefs);
+
+    return result;
+  }
+
+  /**
+   * Tokenize arguments into options and positional arguments
+   */
+  private tokenize(args: string[]): { options: string[]; positional: string[]; unknown: string[] } {
+    const options: string[] = [];
+    const positional: string[] = [];
+    const unknown: string[] = [];
+    
+    let inOptions = true;
+    let i = 0;
+
+    while (i < args.length) {
+      const arg = args[i];
+
+      // Handle end-of-options marker
+      if (arg === '--') {
+        inOptions = false;
+        i++;
+        continue;
+      }
+
+      // Handle options
+      if (inOptions && arg.startsWith('-')) {
+        // Long option with equals
+        if (arg.startsWith('--') && arg.includes('=')) {
+          options.push(arg);
+        }
+        // Long option without equals
+        else if (arg.startsWith('--')) {
+          options.push(arg);
+          // Check if next argument is the value
+          const nextArg = args[i + 1];
+          if (nextArg && !nextArg.startsWith('-')) {
+            const optionName = arg.slice(2);
+            const optionDef = this.findOption(optionName);
+            if (optionDef && !optionDef.flag) {
+              options.push(nextArg);
+              i++; // Skip next argument
+            }
+          }
+        }
+        // Short option(s)
+        else if (arg.length > 1) {
+          const shortOptions = arg.slice(1);
+          
+          // Handle combined short options (-abc)
+          if (shortOptions.length > 1) {
+            for (let j = 0; j < shortOptions.length; j++) {
+              const shortOpt = shortOptions[j];
+              options.push(`-${shortOpt}`);
+              
+              // If this option takes a value and it's the last short option
+              const optionDef = this.findOptionByAlias(shortOpt);
+              if (optionDef && !optionDef.flag && j === shortOptions.length - 1) {
+                const nextArg = args[i + 1];
+                if (nextArg && !nextArg.startsWith('-')) {
+                  options.push(nextArg);
+                  i++; // Skip next argument
+                }
+              }
+            }
+          } else {
+            options.push(arg);
+            // Check if next argument is the value
+            const nextArg = args[i + 1];
+            if (nextArg && !nextArg.startsWith('-')) {
+              const optionDef = this.findOptionByAlias(shortOptions);
+              if (optionDef && !optionDef.flag) {
+                options.push(nextArg);
+                i++; // Skip next argument
+              }
+            }
+          }
+        }
+        
+        // Stop at positional in strict mode
+        if (this.config.stopAtPositional) {
+          inOptions = false;
+        }
+      }
+      // Handle positional arguments
+      else {
+        positional.push(arg);
+        
+        // Stop parsing options after first positional if configured
+        if (this.config.stopAtPositional) {
+          inOptions = false;
+        }
+      }
+
+      i++;
+    }
+
+    return { options, positional, unknown };
+  }
+
+  /**
+   * Parse options from tokenized arguments
+   */
+  private async parseOptions(
+    optionTokens: string[],
+    result: IEnhancedParseResult,
+    optionDefs: IValidatedOption[]
+  ): Promise<void> {
+    let i = 0;
+    
+    while (i < optionTokens.length) {
+      const token = optionTokens[i];
+      
+      if (!token.startsWith('-')) {
+        i++;
+        continue;
+      }
+
+      let optionName: string;
+      let optionValue: string | undefined;
+
+      // Long option with equals (--option=value)
+      if (token.startsWith('--') && token.includes('=')) {
+        const [name, ...valueParts] = token.slice(2).split('=');
+        optionName = name;
+        optionValue = valueParts.join('=');
+      }
+      // Long option (--option)
+      else if (token.startsWith('--')) {
+        optionName = token.slice(2);
+        // Value might be next token
+        if (i + 1 < optionTokens.length && !optionTokens[i + 1].startsWith('-')) {
+          const optionDef = this.findOption(optionName);
+          if (optionDef && !optionDef.flag) {
+            optionValue = optionTokens[i + 1];
+            i++; // Skip next token
+          }
+        }
+      }
+      // Short option (-o)
+      else {
+        optionName = token.slice(1);
+        // Value might be next token
+        if (i + 1 < optionTokens.length && !optionTokens[i + 1].startsWith('-')) {
+          const optionDef = this.findOptionByAlias(optionName);
+          if (optionDef && !optionDef.flag) {
+            optionValue = optionTokens[i + 1];
+            i++; // Skip next token
+          }
+        }
+      }
+
+      // Find option definition
+      const optionDef = this.findOption(optionName) || this.findOptionByAlias(optionName);
+      
+      if (optionDef) {
+        // Handle multiple values
+        if (optionDef.multiple) {
+          if (!result.options[optionDef.name]) {
+            result.options[optionDef.name] = [];
+          }
+          if (optionValue !== undefined) {
+            result.options[optionDef.name].push(optionValue);
+          } else if (optionDef.flag) {
+            result.options[optionDef.name] = true;
+          }
+        } else {
+          result.options[optionDef.name] = optionValue !== undefined ? optionValue : true;
+        }
+      } else if (this.config.mode === 'strict') {
+        result.validation.errors.push({
+          path: ['options', optionName],
+          message: `Unknown option: ${token}`,
+          code: 'unknown_option',
+          received: token,
+        });
+      } else {
+        result.unknown.push(token);
+        if (optionValue !== undefined) {
+          result.unknown.push(optionValue);
+        }
+      }
+
+      i++;
+    }
+  }
+
+  /**
+   * Parse positional arguments
+   */
+  private async parseArguments(
+    positionalTokens: string[],
+    result: IEnhancedParseResult,
+    argumentDefs: IValidatedArgument[]
+  ): Promise<void> {
+    result.positional = [...positionalTokens];
+    
+    for (let i = 0; i < argumentDefs.length; i++) {
+      const argDef = argumentDefs[i];
+      
+      if (argDef.multiple) {
+        // Take all remaining arguments
+        result.arguments[argDef.name] = positionalTokens.slice(i);
+        break;
+      } else if (i < positionalTokens.length) {
+        result.arguments[argDef.name] = positionalTokens[i];
+      } else if (argDef.required) {
+        result.validation.errors.push({
+          path: ['arguments', argDef.name],
+          message: `Missing required argument: ${argDef.name}`,
+          code: 'missing_argument',
+          expected: argDef.type,
+        });
+      } else if (argDef.defaultValue !== undefined) {
+        result.arguments[argDef.name] = argDef.defaultValue;
+      }
+    }
+  }
+
+  /**
+   * Validate and transform the complete parsing result
+   */
+  private async validateResult(
+    result: IEnhancedParseResult,
+    argumentDefs: IValidatedArgument[],
+    optionDefs: IValidatedOption[]
+  ): Promise<void> {
+    const context: IValidationContext = {
+      path: [],
+      rawInput: result,
+      parsedArgs: { ...result.arguments, ...result.options },
+      command: result.command,
+      env: process.env,
+    };
+
+    // Validate arguments
+    for (const argDef of argumentDefs) {
+      await this.validateField(result.arguments, argDef, context, result.validation);
+    }
+
+    // Validate options
+    for (const optDef of optionDefs) {
+      await this.validateField(result.options, optDef, context, result.validation);
+    }
+
+    // Check option conflicts and requirements
+    this.validateOptionConstraints(result, optionDefs);
+
+    result.validation.success = result.validation.errors.length === 0;
+  }
+
+  /**
+   * Validate a single field (argument or option)
+   */
+  private async validateField(
+    container: Record<string, any>,
+    fieldDef: IValidatedArgument | IValidatedOption,
+    context: IValidationContext,
+    validation: IValidationResult
+  ): Promise<void> {
+    const fieldContext = {
+      ...context,
+      path: [...context.path, fieldDef.name],
+    };
+
+    let value = container[fieldDef.name];
+
+    // Check environment variable
+    if (value === undefined && fieldDef.envVar && process.env[fieldDef.envVar]) {
+      value = process.env[fieldDef.envVar];
+    }
+
+    // Apply default value
+    if (value === undefined && fieldDef.defaultValue !== undefined) {
+      value = fieldDef.defaultValue;
+    }
+
+    // Check required fields
+    if (value === undefined && fieldDef.required) {
+      validation.errors.push({
+        path: fieldContext.path,
+        message: `Missing required ${fieldDef.name}`,
+        code: 'required',
+        expected: fieldDef.type,
+      });
+      return;
+    }
+
+    if (value === undefined) {
+      return;
+    }
+
+    // Type coercion
+    if (fieldDef.coerce !== false) {
+      value = this.coerceType(value, fieldDef.type);
+    }
+
+    // Built-in validation
+    const builtInResult = this.validateBuiltInType(value, fieldDef);
+    if (!builtInResult.success) {
+      validation.errors.push(...builtInResult.errors.map(err => ({
+        ...err,
+        path: fieldContext.path,
+      })));
+    }
+
+    // Schema validation
+    if (fieldDef.schema) {
+      try {
+        value = fieldDef.schema.parse(value);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          validation.errors.push(...error.issues.map(issue => ({
+            path: [...fieldContext.path, ...issue.path.map(String)],
+            message: issue.message,
+            code: issue.code,
+            expected: 'valid value',
+            received: value,
+          })));
+        }
+      }
+    }
+
+    // Custom validation
+    if (fieldDef.validator) {
+      const customResult = await fieldDef.validator(value, fieldContext);
+      if (!customResult.success) {
+        validation.errors.push(...customResult.errors);
+      }
+      validation.warnings.push(...customResult.warnings);
+    }
+
+    // Store validated value
+    container[fieldDef.name] = value;
+  }
+
+  /**
+   * Validate option constraints (conflicts and requirements)
+   */
+  private validateOptionConstraints(result: IEnhancedParseResult, optionDefs: IValidatedOption[]): void {
+    for (const optDef of optionDefs) {
+      if (result.options[optDef.name] === undefined) continue;
+
+      // Check conflicts
+      if (optDef.conflicts) {
+        for (const conflictName of optDef.conflicts) {
+          if (result.options[conflictName] !== undefined) {
+            result.validation.errors.push({
+              path: ['options', optDef.name],
+              message: `Option --${optDef.name} conflicts with --${conflictName}`,
+              code: 'option_conflict',
+            });
+          }
+        }
+      }
+
+      // Check requirements
+      if (optDef.requires) {
+        for (const requiredName of optDef.requires) {
+          if (result.options[requiredName] === undefined) {
+            result.validation.errors.push({
+              path: ['options', optDef.name],
+              message: `Option --${optDef.name} requires --${requiredName}`,
+              code: 'option_requirement',
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Coerce value to specified type
+   */
+  private coerceType(value: any, type: ArgumentType): any {
+    if (value === undefined || value === null) return value;
+
+    switch (type) {
+      case ArgumentType.NUMBER:
+        const num = Number(value);
+        return isNaN(num) ? value : num;
+      
+      case ArgumentType.BOOLEAN:
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') {
+          const lower = value.toLowerCase();
+          if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') return true;
+          if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') return false;
+        }
+        return Boolean(value);
+      
+      case ArgumentType.ARRAY:
+        return Array.isArray(value) ? value : [value];
+      
+      case ArgumentType.JSON:
+        if (typeof value === 'string') {
+          try {
+            return JSON.parse(value);
+          } catch {
+            return value;
+          }
+        }
+        return value;
+      
+      default:
+        return String(value);
+    }
+  }
+
+  /**
+   * Validate built-in types
+   */
+  private validateBuiltInType(value: any, fieldDef: IValidatedArgument | IValidatedOption): IValidationResult {
+    const errors: IValidationError[] = [];
+
+    switch (fieldDef.type) {
+      case ArgumentType.NUMBER:
+        if (typeof value !== 'number' || isNaN(value)) {
+          errors.push({
+            path: [],
+            message: 'Expected a number',
+            code: 'invalid_type',
+            expected: 'number',
+            received: typeof value,
+          });
+        } else {
+          if (fieldDef.min !== undefined && value < fieldDef.min) {
+            errors.push({
+              path: [],
+              message: `Value must be at least ${fieldDef.min}`,
+              code: 'too_small',
+              expected: `>= ${fieldDef.min}`,
+              received: value,
+            });
+          }
+          if (fieldDef.max !== undefined && value > fieldDef.max) {
+            errors.push({
+              path: [],
+              message: `Value must be at most ${fieldDef.max}`,
+              code: 'too_big',
+              expected: `<= ${fieldDef.max}`,
+              received: value,
+            });
+          }
+        }
+        break;
+
+      case ArgumentType.STRING:
+        if (typeof value !== 'string') {
+          errors.push({
+            path: [],
+            message: 'Expected a string',
+            code: 'invalid_type',
+            expected: 'string',
+            received: typeof value,
+          });
+        } else {
+          if (fieldDef.min !== undefined && value.length < fieldDef.min) {
+            errors.push({
+              path: [],
+              message: `String must be at least ${fieldDef.min} characters`,
+              code: 'too_small',
+              expected: `length >= ${fieldDef.min}`,
+              received: value.length,
+            });
+          }
+          if (fieldDef.max !== undefined && value.length > fieldDef.max) {
+            errors.push({
+              path: [],
+              message: `String must be at most ${fieldDef.max} characters`,
+              code: 'too_big',
+              expected: `length <= ${fieldDef.max}`,
+              received: value.length,
+            });
+          }
+          if (fieldDef.pattern && !fieldDef.pattern.test(value)) {
+            errors.push({
+              path: [],
+              message: `String does not match required pattern`,
+              code: 'invalid_string',
+              expected: fieldDef.pattern.toString(),
+              received: value,
+            });
+          }
+        }
+        break;
+
+      case ArgumentType.ENUM:
+        if (fieldDef.choices && !fieldDef.choices.includes(String(value))) {
+          errors.push({
+            path: [],
+            message: `Value must be one of: ${fieldDef.choices.join(', ')}`,
+            code: 'invalid_enum_value',
+            expected: fieldDef.choices,
+            received: value,
+          });
+        }
+        break;
+
+      case ArgumentType.EMAIL:
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (typeof value !== 'string' || !emailRegex.test(value)) {
+          errors.push({
+            path: [],
+            message: 'Invalid email address format',
+            code: 'invalid_email',
+            expected: 'valid email',
+            received: value,
+          });
+        }
+        break;
+
+      case ArgumentType.URL:
+        try {
+          new URL(String(value));
+        } catch {
+          errors.push({
+            path: [],
+            message: 'Invalid URL format',
+            code: 'invalid_url',
+            expected: 'valid URL',
+            received: value,
+          });
+        }
+        break;
+    }
+
+    return {
+      success: errors.length === 0,
+      data: value,
+      errors,
+      warnings: [],
+    };
+  }
+
+  /**
+   * Find option by name
+   */
+  private findOption(name: string): IValidatedOption | undefined {
+    return this.options.find(opt => 
+      this.config.caseSensitive ? opt.name === name : opt.name.toLowerCase() === name.toLowerCase()
+    );
+  }
+
+  /**
+   * Find option by alias
+   */
+  private findOptionByAlias(alias: string): IValidatedOption | undefined {
+    return this.options.find(opt => 
+      opt.alias && (this.config.caseSensitive ? opt.alias === alias : opt.alias.toLowerCase() === alias.toLowerCase())
+    );
+  }
+
+  /**
+   * Add built-in help option
+   */
+  private addHelpOption(): void {
+    this.addOption({
+      name: 'help',
+      alias: 'h',
+      description: 'Show help information',
+      type: ArgumentType.BOOLEAN,
+      required: false,
+      flag: true,
+    });
+  }
+
+  /**
+   * Add built-in version option
+   */
+  private addVersionOption(): void {
+    this.addOption({
+      name: 'version',
+      alias: 'v',
+      description: 'Show version information',
+      type: ArgumentType.BOOLEAN,
+      required: false,
+      flag: true,
+    });
+  }
+}
