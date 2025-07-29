@@ -8,7 +8,7 @@ export class CommandResult implements ICommandResult {
     public readonly success: boolean,
     public readonly exitCode: number,
     public readonly data?: any,
-    public readonly message?: string,
+    public readonly message: string | undefined = undefined,
     public readonly error?: Error
   ) {}
 
@@ -43,7 +43,7 @@ export class CommandContext implements ICommandContext {
     public readonly options: Record<string, any>,
     public readonly rawArgs: string[],
     public readonly command: ICommand,
-    public readonly parent?: ICommandContext
+    public readonly parent: ICommandContext | undefined = undefined
   ) {}
 
   /**
@@ -92,11 +92,11 @@ export class CommandContext implements ICommandContext {
  * Base implementation of ICommand
  */
 export abstract class BaseCommand implements ICommand {
-  public arguments?: IArgument[];
-  public options?: IOption[];
+  public arguments: IArgument[] | undefined = undefined;
+  public options: IOption[] | undefined = undefined;
   public subcommands?: ICommand[];
-  public aliases?: string[];
-  public hidden?: boolean;
+  public aliases: string[] | undefined = undefined;
+  public hidden: boolean | undefined = undefined;
   public usage?: string;
   public examples?: string[];
 
@@ -119,8 +119,9 @@ export abstract class BaseCommand implements ICommand {
     if (this.arguments) {
       const requiredArgs = this.arguments.filter(arg => arg.required);
       for (let i = 0; i < requiredArgs.length; i++) {
-        if (!context.args[i]) {
-          throw new Error(`Missing required argument: ${requiredArgs[i].name}`);
+        const requiredArg = requiredArgs[i];
+        if (!context.args[i] || !requiredArg) {
+          throw new Error(`Missing required argument: ${requiredArg?.name || 'unknown'}`);
         }
       }
     }
