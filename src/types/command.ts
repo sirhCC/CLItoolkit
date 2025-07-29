@@ -5,7 +5,7 @@ export interface ICommandResult {
   success: boolean;
   exitCode: number;
   data?: any;
-  message?: string;
+  message: string | undefined;
   error?: Error;
 }
 
@@ -17,7 +17,7 @@ export interface ICommandContext {
   options: Record<string, any>;
   rawArgs: string[];
   command: ICommand;
-  parent?: ICommandContext;
+  parent: ICommandContext | undefined;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface IArgument {
   required: boolean;
   type: 'string' | 'number' | 'boolean';
   defaultValue?: any;
-  validator?: (value: any) => boolean | string;
+  validator: ((value: any) => boolean | string) | undefined;
 }
 
 /**
@@ -37,13 +37,13 @@ export interface IArgument {
  */
 export interface IOption {
   name: string;
-  alias?: string;
+  alias: string | undefined;
   description: string;
   type: 'string' | 'number' | 'boolean' | 'array';
   required: boolean;
   defaultValue?: any;
-  choices?: string[];
-  validator?: (value: any) => boolean | string;
+  choices: string[] | undefined;
+  validator: ((value: any) => boolean | string) | undefined;
 }
 
 /**
@@ -54,11 +54,11 @@ export interface ICommand {
   description: string;
   usage?: string;
   examples?: string[];
-  arguments?: IArgument[];
-  options?: IOption[];
+  arguments: IArgument[] | undefined;
+  options: IOption[] | undefined;
   subcommands?: ICommand[];
-  aliases?: string[];
-  hidden?: boolean;
+  aliases: string[] | undefined;
+  hidden: boolean | undefined;
   
   /**
    * Execute the command
