@@ -327,11 +327,9 @@ describe('EnhancedCliFramework', () => {
       expect(cancelled).toBeGreaterThan(0);
     }, 20);
 
-    try {
-      await promise;
-    } catch (error) {
-      // Expected to be cancelled
-    }
+    const result = await promise;
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Operation was cancelled');
   });
 
   test('should wait for completion', async () => {
@@ -438,13 +436,12 @@ describe('EnhancedCliFramework', () => {
     timeoutFramework.registerCommand(slowCommand);
 
     const start = Date.now();
-    try {
-      await timeoutFramework.executeCommand('slow');
-    } catch (error) {
-      // Expected to timeout
-    }
+    const result = await timeoutFramework.executeCommand('slow');
     const elapsed = Date.now() - start;
 
+    // Should timeout and return a failed result
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Operation was cancelled');
     expect(elapsed).toBeLessThan(150); // Should timeout before command completes
 
     await timeoutFramework.cleanup();
