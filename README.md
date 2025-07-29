@@ -34,9 +34,16 @@
 - Command search and discovery
 - Case-sensitive/insensitive matching
 
+🛠️ **Command Builder Pattern**
+- Fluent API for creating commands with method chaining
+- Built-in validation with helpful error messages
+- Lifecycle management with setup/teardown hooks
+- Type-safe argument and option configuration
+- Comprehensive examples and test coverage
+
 🧩 **Developer Experience**
 - Fluent, chainable API design
-- Comprehensive testing (153+ tests)
+- Comprehensive testing (194+ tests)
 - Rich output formatting capabilities
 - Event-driven architecture with lifecycle hooks
 
@@ -98,6 +105,65 @@ const result = await cli.execute(args);
 console.log(result.message);
 ```
 
+### Using the Command Builder Pattern
+
+```typescript
+import { createCommand } from 'cli-toolkit-framework';
+
+// Create a command using the fluent builder API
+const fileCommand = await createCommand()
+  .name('process-file')
+  .description('Process a file with various options')
+  .alias('pf')
+  .argument('input', 'Input file path', {
+    required: true,
+    type: 'string',
+    validator: (value: string) => {
+      if (!value.endsWith('.txt')) {
+        return 'Input file must be a .txt file';
+      }
+      return true;
+    }
+  })
+  .argument('output', 'Output file path', {
+    required: false,
+    defaultValue: 'output.txt'
+  })
+  .option('--format', 'Output format', {
+    type: 'string',
+    choices: ['json', 'xml', 'csv'],
+    defaultValue: 'json'
+  })
+  .option('--verbose', 'Enable verbose logging', {
+    alias: 'v',
+    type: 'boolean'
+  })
+  .setup(async () => {
+    console.log('Setting up file processor...');
+  })
+  .teardown(async () => {
+    console.log('Cleaning up...');
+  })
+  .action(async (context) => {
+    const [input, output] = context.args;
+    const { format, verbose } = context.options;
+    
+    if (verbose) {
+      console.log(`Processing ${input} -> ${output} (${format})`);
+    }
+    
+    return {
+      success: true,
+      exitCode: 0,
+      message: `File processed successfully`
+    };
+  })
+  .build();
+
+// Register with CLI framework
+cli.registerCommand(fileCommand);
+```
+
 ### Using the Command Registry
 
 ```typescript
@@ -130,8 +196,10 @@ cli-toolkit-framework/
 │   │   ├── argument-parser.ts    # Advanced argument parsing engine
 │   │   ├── base-implementations.ts # Base command, context, result classes
 │   │   ├── cli-framework.ts      # Main CLI framework
+│   │   ├── command-builder.ts    # Fluent command builder with validation
 │   │   └── command-registry.ts   # Command registry with lazy loading
 │   ├── 📁 types/            # TypeScript definitions
+│   │   ├── builder.ts       # Command builder interfaces
 │   │   ├── command.ts       # Command interfaces & types
 │   │   ├── config.ts        # Configuration types
 │   │   ├── errors.ts        # Error classes & event types
@@ -144,10 +212,13 @@ cli-toolkit-framework/
 │   │   ├── base-implementations.test.ts # Base classes tests (26 tests)
 │   │   ├── cli-framework.test.ts       # CLI framework tests (20 tests)
 │   │   └── command-registry.test.ts    # Command registry tests (46 tests)
+│   ├── command-builder.test.ts         # Command builder tests (87 tests)
 │   ├── 📁 helpers/          # Test utilities
 │   │   └── test-utils.test.ts         # Test helper tests
 │   └── 📁 types/            # Type definition tests
 │       └── command.test.ts             # Command type tests
+├── 📁 examples/             # Usage examples and demos
+│   └── command-builder-demo.ts        # Command builder examples
 ├── 📁 dist/                 # Compiled output
 └── 📋 Configuration files (package.json, tsconfig.json, jest.config.js, etc.)
 ```
@@ -358,12 +429,12 @@ We're following a comprehensive development plan with significant progress made:
 🏗️  Foundation:           ████████████████████ 100%
 ⚙️  Argument Parsing:     ████████████████████ 100%
 🗂️  Command Registry:     ████████████████████ 100%
-🎯  Command Builder:      ░░░░░░░░░░░░░░░░░░░░   0%
+🎯  Command Builder:      ████████████████████ 100%
 🚀  Execution Framework: ░░░░░░░░░░░░░░░░░░░░   0%
 🧩  Advanced Features:   ░░░░░░░░░░░░░░░░░░░░   0%
 ```
 
-**Overall Progress: ~50% Complete**
+**Overall Progress: ~60% Complete**
 
 ## 🔧 Technologies & Dependencies
 
@@ -388,9 +459,10 @@ We're following a comprehensive development plan with significant progress made:
 - ✅ **Argument Parser** - Advanced tokenization with flag/option support
 - ✅ **Validation Engine** - Zod schemas with custom validation rules  
 - ✅ **Command Registry** - Hierarchical commands with lazy loading
+- ✅ **Command Builder** - Fluent API for creating commands with validation
 - ✅ **Type System** - Comprehensive interfaces and type definitions
 - ✅ **Error Handling** - Custom error hierarchy with context
-- ✅ **Testing Suite** - 153+ tests with 100% coverage
+- ✅ **Testing Suite** - 194+ tests with 100% coverage
 
 ## 📖 Documentation
 
