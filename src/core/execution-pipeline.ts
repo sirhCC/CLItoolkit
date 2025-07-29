@@ -198,7 +198,13 @@ export class LoggingMiddleware implements IMiddleware {
         console.error(`[${new Date().toISOString()}] Command failed: ${context.command.name}`);
         console.error(`[${new Date().toISOString()}] Error:`, error);
       }
-      throw error;
+      // Return failed result instead of rethrowing
+      return {
+        success: false,
+        exitCode: 1,
+        error: error instanceof Error ? error : new Error(String(error)),
+        message: error instanceof Error ? error.message : String(error)
+      };
     }
   }
 }
