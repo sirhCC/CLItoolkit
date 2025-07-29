@@ -67,3 +67,21 @@ export {
   ConfigurationError, 
   PluginError 
 } from './types/errors';
+
+// Performance Optimizations
+export { PerformanceMonitor, monitor, monitorAsync } from './utils/performance';
+
+// Phase 1+ Advanced Optimizations
+export { globalOptimizationHub } from './utils/advanced-optimization-hub';
+
+// Memory Management (Phase 1++ Enhancement)
+export {
+  globalMemoryManager,
+  WeakReferenceCache,
+  BufferPoolManager,
+  SmartGarbageCollector,
+  AdvancedMemoryManager,
+  withBufferPooling,
+  getOptimizedString,
+  returnOptimizedString
+} from './utils/memory-manager';
