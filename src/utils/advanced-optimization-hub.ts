@@ -7,6 +7,7 @@ import { globalCPUOptimizer } from './cpu-performance-optimizer';
 import { globalCacheManager } from './advanced-cache-manager';
 import { globalNetworkOptimizer } from './network-performance-optimizer';
 import { globalDevToolsOptimizer } from './dev-tools-optimizer';
+import { globalMemoryManager } from './memory-manager';
 import { EventEmitter } from 'events';
 
 export interface OptimizationSuite {
@@ -14,6 +15,7 @@ export interface OptimizationSuite {
     cache: typeof globalCacheManager;
     network: typeof globalNetworkOptimizer;
     devtools: typeof globalDevToolsOptimizer;
+    memory: typeof globalMemoryManager;
 }
 
 export interface SystemMetrics {
@@ -37,6 +39,12 @@ export interface SystemMetrics {
         hotReloadCount: number;
         debugSessionCount: number;
     };
+    memory: {
+        heapUsedMB: number;
+        memoryPressure: string;
+        bufferPoolHitRate: number;
+        weakCacheSize: number;
+    };
     overall: {
         performanceScore: number;
         optimizationLevel: string;
@@ -55,7 +63,8 @@ export class AdvancedOptimizationHub extends EventEmitter {
             cpu: globalCPUOptimizer,
             cache: globalCacheManager,
             network: globalNetworkOptimizer,
-            devtools: globalDevToolsOptimizer
+            devtools: globalDevToolsOptimizer,
+            memory: globalMemoryManager
         };
     }
 
@@ -228,12 +237,18 @@ export class AdvancedOptimizationHub extends EventEmitter {
         const networkStats = this.suite.network.getStats();
         const devMetrics = this.suite.devtools.getMetrics();
 
+        // Get memory metrics
+        const memoryReport = this.suite.memory.getMemoryReport();
+        
         // Calculate overall performance score
         const performanceScore = this.calculatePerformanceScore({
             cpuScore: Math.min(100, cpuAnalytics.averageImprovement + 50),
             cacheScore: Math.min(100, cacheStats.hitRatio),
             networkScore: Math.min(100, 100 - (networkStats.averageResponseTime / 20)),
-            devtoolsScore: Math.min(100, 100 - (devMetrics.buildTime / 100))
+            devtoolsScore: Math.min(100, 100 - (devMetrics.buildTime / 100)),
+            memoryScore: memoryReport.memoryPressure.level === 'low' ? 100 : 
+                        memoryReport.memoryPressure.level === 'medium' ? 75 :
+                        memoryReport.memoryPressure.level === 'high' ? 50 : 25
         });
 
         const optimizationLevel = this.getOptimizationLevel(performanceScore);
@@ -261,6 +276,12 @@ export class AdvancedOptimizationHub extends EventEmitter {
                 hotReloadCount: devMetrics.hotReloadCount,
                 debugSessionCount: devMetrics.debugSessionCount
             },
+            memory: {
+                heapUsedMB: Math.round(memoryReport.currentMetrics.heapUsed / 1024 / 1024),
+                memoryPressure: memoryReport.memoryPressure.level,
+                bufferPoolHitRate: memoryReport.bufferPoolStats?.hitRate ?? 0,
+                weakCacheSize: memoryReport.weakCacheStats?.size ?? 0
+            },
             overall: {
                 performanceScore,
                 optimizationLevel,
@@ -277,19 +298,22 @@ export class AdvancedOptimizationHub extends EventEmitter {
         cacheScore: number;
         networkScore: number;
         devtoolsScore: number;
+        memoryScore: number;
     }): number {
         const weights = {
-            cpu: 0.3,
-            cache: 0.25,
-            network: 0.25,
-            devtools: 0.2
+            cpu: 0.25,
+            cache: 0.2,
+            network: 0.2,
+            devtools: 0.15,
+            memory: 0.2
         };
 
         return Math.round(
             scores.cpuScore * weights.cpu +
             scores.cacheScore * weights.cache +
             scores.networkScore * weights.network +
-            scores.devtoolsScore * weights.devtools
+            scores.devtoolsScore * weights.devtools +
+            scores.memoryScore * weights.memory
         );
     }
 
@@ -456,7 +480,7 @@ ${metrics.overall.recommendations.map(rec => `• ${rec}`).join('\n')}
 
             case 'production':
                 this.suite.cpu.updateConfig({ enableWorkerThreads: true, enableSIMD: true, maxWorkers: 6 });
-                this.suite.cache.updateConfig({ memoryCacheSize: 256, enableDiskCache: true, enableCompression: true });
+                this.suite.cache.updateConfig({ memoryCacheSize: 256, enableDiskCache: true });
                 this.suite.network.updateConfig({ enableConnectionPooling: true, enableCompression: true, maxConnections: 20 });
                 this.suite.devtools.updateConfig({ enableHotReload: false, enableProfiling: true });
                 break;
@@ -477,9 +501,7 @@ ${metrics.overall.recommendations.map(rec => `• ${rec}`).join('\n')}
                 });
                 this.suite.cache.updateConfig({
                     memoryCacheSize: 512,
-                    enableDiskCache: true,
-                    enableCompression: true,
-                    enableEncryption: true
+                    enableDiskCache: true
                 });
                 this.suite.network.updateConfig({
                     enableConnectionPooling: true,
