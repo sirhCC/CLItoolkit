@@ -219,6 +219,11 @@ cli-toolkit-framework/
 │       └── command.test.ts             # Command type tests
 ├── 📁 examples/             # Usage examples and demos
 │   └── command-builder-demo.ts        # Command builder examples
+├── 📁 docs/                 # Documentation and guides
+│   ├── README.md            # Documentation index
+│   ├── cli_toolkit_guidelines.md      # Development guidelines & roadmap
+│   ├── PHASE_3_1_COMPLETION.md        # Phase 3.1 completion summary
+│   └── COMMAND_BUILDER_SUMMARY.md     # Command builder technical details
 ├── 📁 dist/                 # Compiled output
 └── 📋 Configuration files (package.json, tsconfig.json, jest.config.js, etc.)
 ```
@@ -421,7 +426,7 @@ We're following a comprehensive development plan with significant progress made:
 - [ ] Auto-completion scripts
 - [ ] Rich output formatting & themes
 
-[View Full Roadmap →](./cli_toolkit_guidelines.md#%EF%B8%8F-cli-toolkit-framework-development-roadmap)
+[View Full Roadmap →](./docs/cli_toolkit_guidelines.md#%EF%B8%8F-cli-toolkit-framework-development-roadmap)
 
 ## 📊 Current Status
 
@@ -466,13 +471,13 @@ We're following a comprehensive development plan with significant progress made:
 
 ## 📖 Documentation
 
-- [Development Guidelines](./cli_toolkit_guidelines.md) - Comprehensive development principles
-- [Roadmap](./cli_toolkit_guidelines.md#roadmap) - 24-week development plan
+- [Development Guidelines](./docs/cli_toolkit_guidelines.md) - Comprehensive development principles
+- [Roadmap](./docs/cli_toolkit_guidelines.md#roadmap) - 24-week development plan
 - [API Reference](./src/types/index.ts) - Type definitions and interfaces
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [development guidelines](./cli_toolkit_guidelines.md) for coding standards and architecture principles.
+We welcome contributions! Please see our [development guidelines](./docs/cli_toolkit_guidelines.md) for coding standards and architecture principles.
 
 ### Key Principles
 
