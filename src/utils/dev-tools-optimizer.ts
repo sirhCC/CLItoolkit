@@ -27,6 +27,7 @@ export interface DevToolsMetrics {
     profileGeneratedCount: number;
     errorCount: number;
     warningCount: number;
+    totalRequests: number;
 }
 
 export interface DebugSession {
@@ -72,7 +73,8 @@ export class DevToolsOptimizer extends EventEmitter {
         testRunCount: 0,
         profileGeneratedCount: 0,
         errorCount: 0,
-        warningCount: 0
+        warningCount: 0,
+        totalRequests: 0
     };
 
     private debugSessions = new Map<string, DebugSession>();
@@ -541,8 +543,8 @@ module.exports = { SourceMapManager };
     private async executeBuild(command: string): Promise<void> {
         const { exec } = require('child_process');
 
-        return new Promise((resolve, reject) => {
-            exec(command, { cwd: this.config.workspaceRoot }, (error, stdout, stderr) => {
+        return new Promise<void>((resolve, reject) => {
+            exec(command, { cwd: this.config.workspaceRoot }, (error: any, stdout: any, stderr: any) => {
                 if (error) {
                     reject(error);
                 } else {

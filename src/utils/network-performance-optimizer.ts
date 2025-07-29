@@ -196,7 +196,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
             this.recordResponseTime(response.responseTime);
             this.emit('network:success', { url: options.url, responseTime: response.responseTime });
 
-            return response;
+            return response as NetworkResponse<T>;
 
         } catch (error) {
             this.stats.failedRequests++;

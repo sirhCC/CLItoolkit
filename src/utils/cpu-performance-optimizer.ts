@@ -503,7 +503,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
             if (!methodImprovements[result.method]) {
                 methodImprovements[result.method] = [];
             }
-            methodImprovements[result.method].push(result.improvement);
+            methodImprovements[result.method]?.push(result.improvement);
         }
 
         const topPerformingMethods = Object.entries(methodImprovements)
