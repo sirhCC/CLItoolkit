@@ -48,9 +48,9 @@ export interface ICommandRegistration {
   /** Command factory for lazy loading */
   factory: CommandFactory;
   /** Parent command path (e.g., ['git', 'remote'] for 'git remote add') */
-  parentPath?: string[];
+  parentPath: string[] | undefined;
   /** Command instance (lazy loaded) */
-  instance?: ICommand;
+  instance: ICommand | undefined;
   /** Whether command has been loaded */
   isLoaded: boolean;
   /** Registration timestamp */
