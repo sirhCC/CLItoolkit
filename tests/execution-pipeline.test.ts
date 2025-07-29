@@ -344,7 +344,9 @@ describe('LoggingMiddleware', () => {
 
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-    await expect(middleware.execute(mockContext, mockNext)).rejects.toThrow(error);
+    const result = await middleware.execute(mockContext, mockNext);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(error);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringMatching(/\[.*\] Command failed: test-command/)
