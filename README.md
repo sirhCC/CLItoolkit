@@ -41,9 +41,17 @@
 - Type-safe argument and option configuration
 - Comprehensive examples and test coverage
 
+🔧 **Configuration & Dependency Injection**
+- Multi-layer configuration system (CLI args, env vars, config files)
+- JSON, YAML, and TOML configuration file support
+- Advanced dependency injection container
+- Service lifecycle management (singleton, transient, scoped)
+- Circular dependency detection and resolution
+- Built-in service interfaces for common needs
+
 🧩 **Developer Experience**
 - Fluent, chainable API design
-- Comprehensive testing (194+ tests)
+- Comprehensive testing (354+ tests)
 - Rich output formatting capabilities
 - Event-driven architecture with lifecycle hooks
 
@@ -185,6 +193,54 @@ const remoteCommands = await registry.getByCategory('git');
 
 // Resolve commands from arguments
 const result = await registry.resolve(['git', 'remote', 'add', 'origin', 'url']);
+```
+
+### Using Dependency Injection
+
+```typescript
+import { 
+  EnhancedServiceContainer, 
+  createServiceToken, 
+  ServiceLifetime 
+} from 'cli-toolkit-framework';
+
+// Define service interfaces
+interface IUserService {
+  getUser(id: string): Promise<User>;
+}
+
+interface IEmailService {
+  sendEmail(to: string, subject: string, body: string): Promise<void>;
+}
+
+// Create service tokens
+const UserServiceToken = createServiceToken<IUserService>('IUserService');
+const EmailServiceToken = createServiceToken<IEmailService>('IEmailService');
+
+// Create service container
+const container = new EnhancedServiceContainer();
+
+// Register services with dependencies
+container.registerSingleton(
+  EmailServiceToken, 
+  EmailService
+);
+
+container.registerTransient(
+  UserServiceToken, 
+  UserService, 
+  [EmailServiceToken] // Dependencies injected automatically
+);
+
+// Use services
+const userService = await container.get(UserServiceToken);
+const user = await userService.getUser('123');
+
+// Service scopes for request-based services
+await container.withScope(async (scope) => {
+  const scopedUserService = await scope.get(UserServiceToken);
+  // Use scoped service...
+});
 ```
 
 ## 📁 Project Structure
@@ -419,10 +475,10 @@ We're following a comprehensive development plan with significant progress made:
 - [x] **Command Builder Pattern** - Fluent API for command definition
 - [x] **Execution Framework** - Async execution with context management
 
-### Phase 4: Configuration & Dependency Injection 🚧 IN PROGRESS
+### Phase 4: Configuration & Dependency Injection ✅ COMPLETED
 
 - [x] **Configuration System** - Multi-layer configuration with validation
-- [ ] **Dependency Injection** - Service container with lifecycle management
+- [x] **Dependency Injection** - Service container with lifecycle management
 
 ### Phase 5: Advanced Features 📋 PLANNED
 
@@ -442,11 +498,11 @@ We're following a comprehensive development plan with significant progress made:
 🎯  Command Builder:      ████████████████████ 100%
 🚀  Execution Framework: ████████████████████ 100%
 🔧  Configuration:       ████████████████████ 100%
-📦  Dependency Injection: ░░░░░░░░░░░░░░░░░░░░   0%
+📦  Dependency Injection: ████████████████████ 100%
 🧩  Advanced Features:   ░░░░░░░░░░░░░░░░░░░░   0%
 ```
 
-**Overall Progress: ~85% Complete**
+**Overall Progress: ~87% Complete**
 
 ## 🔧 Technologies & Dependencies
 
@@ -490,9 +546,15 @@ We're following a comprehensive development plan with significant progress made:
   - Configuration precedence resolution and validation
   - Type-safe configuration access with Zod schemas
   - Environment variable transformation and parsing
+- ✅ **Dependency Injection** - Complete Phase 4.2 implementation:
+  - Advanced service container with type-safe registration
+  - Service lifecycle management (singleton, transient, scoped)
+  - Circular dependency detection and validation
+  - Built-in service interfaces (Logger, FileSystem, HttpClient)
+  - Service scope management with automatic disposal
 - ✅ **Type System** - Comprehensive interfaces and type definitions
 - ✅ **Error Handling** - Custom error hierarchy with context
-- ✅ **Testing Suite** - 327 tests with 98%+ coverage (26 config tests + 301 core tests)
+- ✅ **Testing Suite** - 354 tests with 98%+ coverage (27 DI tests + 26 config tests + 301 core tests)
 
 ## 📖 Documentation
 
