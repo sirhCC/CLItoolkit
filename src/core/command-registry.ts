@@ -56,6 +56,10 @@ export class CommandRegistry implements ICommandRegistry {
 
     // Create default metadata
     const commandName = pathArray[pathArray.length - 1];
+    if (!commandName) {
+      throw new Error('Command name cannot be empty');
+    }
+    
     const defaultMetadata: ICommandMetadata = {
       name: commandName,
       description: metadata?.description || `${commandName} command`,
@@ -72,6 +76,7 @@ export class CommandRegistry implements ICommandRegistry {
       metadata: defaultMetadata,
       factory,
       parentPath: pathArray.length > 1 ? pathArray.slice(0, -1) : undefined,
+      instance: undefined,
       isLoaded: false,
       registeredAt: new Date()
     };
@@ -136,15 +141,16 @@ export class CommandRegistry implements ICommandRegistry {
     }
 
     // Also check aliases
-    if (!bestMatch) {
+    if (!bestMatch && args[0]) {
+      const firstArg = args[0];
       for (const [, registration] of this.registrations) {
         if (registration.metadata.aliases) {
           for (const alias of registration.metadata.aliases) {
-            if (this.matchesAlias(alias, args[0])) {
+            if (this.matchesAlias(alias, firstArg)) {
               return {
                 registration,
                 remainingArgs: args.slice(1),
-                matchedPath: [args[0]]
+                matchedPath: [firstArg]
               };
             }
           }
