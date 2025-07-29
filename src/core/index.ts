@@ -12,3 +12,6 @@ export {
 export {
   CliFramework
 } from './cli-framework';
+
+// Export argument parser
+export * from './argument-parser';
