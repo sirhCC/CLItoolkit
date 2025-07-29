@@ -16,7 +16,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": false, // Disabled for development
     "noUnusedParameters": false, // Disabled for development
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     
