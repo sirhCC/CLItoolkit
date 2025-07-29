@@ -2,7 +2,7 @@
  * @fileoverview Command registry interfaces and types for Phase 3.1
  */
 
-import { ICommand, ICommandContext, ICommandResult } from './command';
+import { ICommand } from './command';
 
 /**
  * Command factory function for lazy loading
