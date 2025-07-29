@@ -36,3 +36,6 @@ export type {
   ICliEvents,
   EventListener
 } from './errors';
+
+// Export validation types
+export * from './validation';
