@@ -251,6 +251,10 @@ export class EnhancedCliFramework {
     let i = 0;
     while (i < argv.length) {
       const arg = argv[i];
+      if (!arg) {
+        i++;
+        continue;
+      }
 
       // Long option (--key=value or --key value)
       if (arg.startsWith('--')) {
@@ -267,7 +271,8 @@ export class EnhancedCliFramework {
           const key = optionText;
           
           // Check if next argument is a value (doesn't start with -)
-          if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
+          const nextArg = argv[i + 1];
+          if (i + 1 < argv.length && nextArg && !nextArg.startsWith('-')) {
             options[key] = argv[i + 1];
             i++; // Skip the value argument
           } else {
@@ -285,8 +290,9 @@ export class EnhancedCliFramework {
           const key = optionText;
           
           // Check if next argument is a value
-          if (i + 1 < argv.length && !argv[i + 1].startsWith('-')) {
-            options[key] = argv[i + 1];
+          const nextArg = argv[i + 1];
+          if (i + 1 < argv.length && nextArg && !nextArg.startsWith('-')) {
+            options[key] = nextArg;
             i++; // Skip the value argument
           } else {
             // Boolean flag

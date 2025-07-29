@@ -122,7 +122,7 @@ export class CliFramework {
               options[optionText] = true;
             }
           }
-        } else if (arg?.length > 1) {
+        } else if (arg && arg.length > 1) {
           const optionText = arg.slice(1);
           if (optionText.length === 1) {
             const nextArg = args[i + 1];
@@ -143,11 +143,14 @@ export class CliFramework {
 
       // Get command if any remaining
       if (i < args.length) {
-        command = args[i];
-        positionalArgs.push(...args.slice(i + 1));
+        const commandArg = args[i];
+        if (commandArg) {
+          command = commandArg;
+        }
+        positionalArgs.push(...args.slice(i + 1).filter(Boolean));
       }
 
-      return { command, args: positionalArgs, options };
+      return { command: command || '', args: positionalArgs, options };
     }
 
     const command = args[0];
@@ -158,6 +161,10 @@ export class CliFramework {
     let i = 0;
     while (i < remaining.length) {
       const arg = remaining[i];
+      if (!arg) {
+        i++;
+        continue;
+      }
 
       // Long option (--option or --option=value)
       if (arg.startsWith('--')) {
@@ -165,7 +172,9 @@ export class CliFramework {
         
         if (optionText.includes('=')) {
           const [key, ...valueParts] = optionText.split('=');
-          options[key] = valueParts.join('=');
+          if (key) {
+            options[key] = valueParts.join('=');
+          }
         } else {
           const nextArg = remaining[i + 1];
           // Only consume next argument as option value if it doesn't start with '-'
@@ -217,7 +226,7 @@ export class CliFramework {
       i++;
     }
 
-    return { command, args: positionalArgs, options };
+    return { command: command || '', args: positionalArgs, options };
   }
 
   /**

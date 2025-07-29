@@ -111,26 +111,31 @@ export class ZeroCopyArgumentParser {
     }
 
     // Check if first argument is a command (not starting with -)
-    if (!argv[0].startsWith('-')) {
-      result.command = argv[0];
+    const firstArg = argv[0];
+    if (firstArg && !firstArg.startsWith('-')) {
+      result.command = firstArg;
       i = 1;
     }
 
     // Parse remaining arguments
     while (i < len) {
       const arg = argv[i];
+      if (!arg) {
+        i++;
+        continue;
+      }
       
       if (arg.startsWith('--')) {
         // Long option
         const eqIndex = arg.indexOf('=');
         if (eqIndex !== -1) {
           // --option=value
-          const optName = arg.slice(0, eqIndex);
+          const optName = arg.slice(2, eqIndex);
           const value = arg.slice(eqIndex + 1);
           this.setOption(result, optName, value);
         } else {
           // --option [value]
-          const optName = arg;
+          const optName = arg.slice(2);
           const nextArg = i + 1 < len ? argv[i + 1] : undefined;
           
           if (this.isBooleanOption(optName)) {

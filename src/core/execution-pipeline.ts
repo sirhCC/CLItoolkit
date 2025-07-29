@@ -76,6 +76,9 @@ export class ExecutionPipeline {
       }
 
       const stage = this.middlewares[index++];
+      if (!stage) {
+        throw new Error('No middleware stage found');
+      }
       const middleware = stage.middleware;
 
       // Execute middleware
