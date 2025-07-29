@@ -1,5 +1,5 @@
 import { CommandResult, CommandContext, BaseCommand, SimpleCommand } from '@/core/base-implementations';
-import { ICommandContext, ICommandResult } from '@/types';
+import { ICommandResult } from '../../src/types';
 
 describe('CommandResult', () => {
   describe('constructor', () => {

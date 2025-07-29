@@ -1,4 +1,4 @@
-import { ICommand, ICommandContext, ICommandResult, ICliConfig } from '@/types';
+import { ICommand, ICommandResult, ICliConfig } from '@/types';
 import { CommandResult, CommandContext } from '@/core/base-implementations';
 
 /**
