@@ -154,25 +154,42 @@ export class CommandExecutor {
     );
 
     try {
-      // Set up timeout if specified
-      let timeoutHandle: NodeJS.Timeout | undefined;
-      if (timeout && timeout > 0) {
-        timeoutHandle = setTimeout(() => {
-          context.cancellationToken.cancel(`Execution timeout after ${timeout}ms`);
-        }, timeout);
-      }
-
-      // Execute the command through the pipeline
+      // Execute the command through the pipeline with timeout
       queueItem.startTime = Date.now();
-      const result = await usedPipeline.execute(context, command);
+      let result: ICommandResult;
 
-      // Clear timeout
-      if (timeoutHandle) {
-        clearTimeout(timeoutHandle);
+      if (timeout && timeout > 0) {
+        // Race the execution against the timeout
+        const executionPromise = usedPipeline.execute(context, command);
+        const timeoutPromise = new Promise<ICommandResult>((_, reject) => {
+          setTimeout(() => {
+            context.cancellationToken.cancel(`Execution timeout after ${timeout}ms`);
+            reject(new CommandExecutionError(`Operation was cancelled: Execution timeout after ${timeout}ms`));
+          }, timeout);
+        });
+
+        try {
+          result = await Promise.race([executionPromise, timeoutPromise]);
+        } catch (error) {
+          // Handle timeout error
+          if (error instanceof CommandExecutionError && error.message.includes('timeout')) {
+            result = {
+              success: false,
+              exitCode: 1,
+              error: error,
+              message: error.message
+            };
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        // No timeout, execute normally
+        result = await usedPipeline.execute(context, command);
       }
 
       // Update stats
-      const executionTime = Date.now() - queueItem.startTime;
+      const executionTime = queueItem.startTime ? Date.now() - queueItem.startTime : 0;
       this.totalExecutionTime += executionTime;
       this.stats.averageExecutionTime = this.totalExecutionTime / this.stats.totalExecutions;
 
@@ -195,9 +212,16 @@ export class CommandExecutor {
       
       this.stats.failedExecutions++;
       
-      const executionError = error instanceof Error ? error : new Error(String(error));
-      queueItem.reject(executionError);
-      throw executionError;
+      // Convert error to result instead of throwing
+      const result: ICommandResult = {
+        success: false,
+        exitCode: 1,
+        error: error instanceof Error ? error : new Error(String(error)),
+        message: error instanceof Error ? error.message : String(error)
+      };
+      
+      queueItem.resolve(result);
+      return result;
 
     } finally {
       // Clean up
