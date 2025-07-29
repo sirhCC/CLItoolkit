@@ -133,8 +133,8 @@ describe('ArgumentParser', () => {
       
       expect(result.validation.success).toBe(false);
       expect(result.validation.errors).toHaveLength(1);
-      expect(result.validation.errors[0].code).toBe('missing_argument');
-      expect(result.validation.errors[0].path).toEqual(['arguments', 'input']);
+      expect(result.validation.errors[0].code).toBe('required');
+      expect(result.validation.errors[0].path).toEqual(['input']);
     });
   });
 
