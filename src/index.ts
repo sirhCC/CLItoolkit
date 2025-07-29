@@ -71,6 +71,21 @@ export {
 // Performance Optimizations
 export { PerformanceMonitor, monitor, monitorAsync } from './utils/performance';
 
+// Enhanced Performance Monitoring
+export { EnhancedPerformanceMonitor } from './utils/enhanced-performance';
+
+// Enterprise Analytics (Phase 1 - Performance Monitoring Upgrade)
+export { 
+  EnterpriseAnalytics, 
+  globalEnterpriseAnalytics 
+} from './utils/enterprise-analytics';
+
+export type {
+  AnalyticsDataPoint,
+  TrendAnalysis,
+  EnterpriseAnalyticsConfig
+} from './utils/enterprise-analytics';
+
 // Phase 1+ Advanced Optimizations
 export { globalOptimizationHub } from './utils/advanced-optimization-hub';
 
