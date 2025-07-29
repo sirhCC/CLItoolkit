@@ -184,7 +184,7 @@ export class ExecutionContext implements IExecutionContext {
     public readonly options: Record<string, any>,
     public readonly rawArgs: string[],
     public readonly command: ICommand,
-    public readonly parent?: ICommandContext,
+    public readonly parent: ICommandContext | undefined = undefined,
     services?: IServiceContainer,
     cancellationToken?: CancellationToken
   ) {
