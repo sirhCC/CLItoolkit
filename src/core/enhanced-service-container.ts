@@ -13,7 +13,7 @@ export enum ServiceLifetime {
 /**
  * Service registration metadata
  */
-export interface ServiceRegistration<T = unknown> {
+export interface ServiceRegistration<T = any> {
   /** Unique service identifier */
   token: ServiceToken<T>;
   /** Service implementation constructor or factory */
@@ -21,15 +21,15 @@ export interface ServiceRegistration<T = unknown> {
   /** Service lifetime management */
   lifetime: ServiceLifetime;
   /** Service dependencies */
-  dependencies?: ServiceToken<unknown>[];
+  dependencies?: ServiceToken<any>[];
   /** Service metadata */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
 }
 
 /**
  * Service token for type-safe service identification
  */
-export interface ServiceToken<T = unknown> {
+export interface ServiceToken<T = any> {
   /** Unique token identifier */
   readonly id: string;
   /** Optional token description */
@@ -46,8 +46,9 @@ export type ServiceImplementation<T> =
   | ServiceFactory<T>
   | T; // Direct instance
 
-export type ServiceConstructor<T> = new (...args: unknown[]) => T;
-export type ServiceFactory<T> = (...args: unknown[]) => T | Promise<T>;
+// More flexible constructor type that allows specific parameters
+export type ServiceConstructor<T> = new (...args: any[]) => T;
+export type ServiceFactory<T> = (...args: any[]) => T | Promise<T>;
 
 /**
  * Service scope for managing scoped services
@@ -83,11 +84,10 @@ export class EnhancedServiceContainer {
    * Register a service with the container
    */
   register<T>(registration: ServiceRegistration<T>): this {
-    // Check for circular dependencies
+    // Check for circular dependencies (this also updates the dependency graph)
     this.validateDependencies(registration);
     
     this.registrations.set(registration.token.id, registration);
-    this.updateDependencyGraph(registration);
     
     return this;
   }
@@ -98,7 +98,7 @@ export class EnhancedServiceContainer {
   registerTransient<T>(
     token: ServiceToken<T>,
     implementation: ServiceImplementation<T>,
-    dependencies?: ServiceToken<unknown>[]
+    dependencies?: ServiceToken<any>[]
   ): this {
     return this.register({
       token,
@@ -114,7 +114,7 @@ export class EnhancedServiceContainer {
   registerSingleton<T>(
     token: ServiceToken<T>,
     implementation: ServiceImplementation<T>,
-    dependencies?: ServiceToken<unknown>[]
+    dependencies?: ServiceToken<any>[]
   ): this {
     return this.register({
       token,
@@ -130,7 +130,7 @@ export class EnhancedServiceContainer {
   registerScoped<T>(
     token: ServiceToken<T>,
     implementation: ServiceImplementation<T>,
-    dependencies?: ServiceToken<unknown>[]
+    dependencies?: ServiceToken<any>[]
   ): this {
     return this.register({
       token,
@@ -241,7 +241,7 @@ export class EnhancedServiceContainer {
   /**
    * Get all registered service tokens
    */
-  getRegisteredTokens(): ServiceToken<unknown>[] {
+  getRegisteredTokens(): ServiceToken<any>[] {
     return Array.from(this.registrations.values()).map(reg => reg.token);
   }
 
@@ -251,6 +251,10 @@ export class EnhancedServiceContainer {
   private validateDependencies<T>(registration: ServiceRegistration<T>): void {
     if (!registration.dependencies) return;
 
+    // Update the dependency graph first
+    this.updateDependencyGraph(registration);
+
+    // Check for circular dependencies in the entire graph
     const visited = new Set<string>();
     const visiting = new Set<string>();
 
@@ -262,10 +266,10 @@ export class EnhancedServiceContainer {
 
       visiting.add(tokenId);
       
-      const reg = this.registrations.get(tokenId);
-      if (reg?.dependencies) {
-        for (const dep of reg.dependencies) {
-          checkCircular(dep.id);
+      const deps = this.dependencyGraph.get(tokenId);
+      if (deps) {
+        for (const depId of deps) {
+          checkCircular(depId);
         }
       }
 
@@ -273,6 +277,7 @@ export class EnhancedServiceContainer {
       visited.add(tokenId);
     };
 
+    // Check all services for circular dependencies, starting with the new one
     checkCircular(registration.token.id);
   }
 
@@ -473,8 +478,8 @@ export class EnhancedServiceContainer {
   /**
    * Resolve service dependencies
    */
-  private async resolveDependencies(dependencies: ServiceToken<unknown>[]): Promise<unknown[]> {
-    const resolved: unknown[] = [];
+  private async resolveDependencies(dependencies: ServiceToken<any>[]): Promise<any[]> {
+    const resolved: any[] = [];
     
     for (const dep of dependencies) {
       resolved.push(await this.get(dep));
@@ -486,8 +491,8 @@ export class EnhancedServiceContainer {
   /**
    * Resolve service dependencies synchronously
    */
-  private resolveDependenciesSync(dependencies: ServiceToken<unknown>[]): unknown[] | Promise<unknown[]> {
-    const resolved: (unknown | Promise<unknown>)[] = [];
+  private resolveDependenciesSync(dependencies: ServiceToken<any>[]): any[] | Promise<any[]> {
+    const resolved: (any | Promise<any>)[] = [];
     let hasAsync = false;
 
     for (const dep of dependencies) {
@@ -502,7 +507,7 @@ export class EnhancedServiceContainer {
       return Promise.all(resolved);
     }
 
-    return resolved as unknown[];
+    return resolved as any[];
   }
 
   /**

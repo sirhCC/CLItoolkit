@@ -26,10 +26,14 @@ interface IAsyncService {
 
 // Test service implementations with proper signatures for DI
 class TestService implements ITestService {
-  constructor() {}
+  private value: string;
+  
+  constructor(value?: string) {
+    this.value = value || 'test-value';
+  }
   
   getValue(): string {
-    return 'test-value';
+    return this.value;
   }
 }
 
