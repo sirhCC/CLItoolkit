@@ -141,7 +141,7 @@ export class ArgumentParser {
 
       // Check for subcommands first
       const potentialSubcommand = args[0];
-      if (!potentialSubcommand.startsWith('-') && this.subcommands.has(potentialSubcommand)) {
+      if (potentialSubcommand && !potentialSubcommand.startsWith('-') && this.subcommands.has(potentialSubcommand)) {
         result.command = potentialSubcommand;
         result.subcommand = potentialSubcommand;
         const subcommandConfig = this.subcommands.get(potentialSubcommand)!;
@@ -152,7 +152,7 @@ export class ArgumentParser {
 
       // Only treat first argument as a command if there are subcommands defined
       // and this argument doesn't match any subcommand (for error handling)
-      if (!potentialSubcommand.startsWith('-') && this.subcommands.size > 0) {
+      if (potentialSubcommand && !potentialSubcommand.startsWith('-') && this.subcommands.size > 0) {
         result.command = potentialSubcommand;
         return this.parseWithConfig(args.slice(1), result, this.arguments, this.options);
       }
@@ -237,7 +237,7 @@ export class ArgumentParser {
       }
 
       // Handle options
-      if (inOptions && arg.startsWith('-')) {
+      if (inOptions && arg && arg.startsWith('-')) {
         // Long option with equals
         if (arg.startsWith('--') && arg.includes('=')) {
           options.push(arg);
@@ -270,7 +270,7 @@ export class ArgumentParser {
         }
       }
       // Handle positional arguments
-      else {
+      else if (arg) {
         positional.push(arg);
         
         // Stop parsing options after first positional if configured
@@ -300,8 +300,8 @@ export class ArgumentParser {
     while (i < args.length) {
       const arg = args[i];
       
-      // Skip if already consumed
-      if (consumedIndices.has(i)) {
+      // Skip if already consumed or arg is undefined
+      if (consumedIndices.has(i) || !arg) {
         i++;
         continue;
       }
@@ -343,6 +343,7 @@ export class ArgumentParser {
           // Handle combined short options (-abc)
           for (let j = 0; j < shortOpts.length; j++) {
             const shortOpt = shortOpts[j];
+            if (!shortOpt) continue;
             const shortOptDef = optionDefs.find(opt => 
               opt.alias && (this.config.caseSensitive ? opt.alias === shortOpt : opt.alias.toLowerCase() === shortOpt.toLowerCase())
             );
@@ -425,10 +426,13 @@ export class ArgumentParser {
           if (optionValue !== undefined) {
             // Value was provided with = syntax
             result.unknown.push(optionValue);
-          } else if (consumed === 1 && i + 1 < args.length && !args[i + 1].startsWith('-')) {
-            // Next argument could be a value
-            result.unknown.push(args[i + 1]);
-            consumed = 2;
+          } else if (consumed === 1 && i + 1 < args.length) {
+            const nextArg = args[i + 1];
+            if (nextArg && !nextArg.startsWith('-')) {
+              // Next argument could be a value
+              result.unknown.push(nextArg);
+              consumed = 2;
+            }
           }
         }
 
@@ -444,8 +448,9 @@ export class ArgumentParser {
     // Second pass: build positional array from non-consumed arguments
     result.positional = [];
     for (let j = 0; j < args.length; j++) {
-      if (!consumedIndices.has(j) && !args[j].startsWith('-')) {
-        result.positional.push(args[j]);
+      const arg = args[j];
+      if (!consumedIndices.has(j) && arg && !arg.startsWith('-')) {
+        result.positional.push(arg);
       }
     }
   }
@@ -462,6 +467,7 @@ export class ArgumentParser {
     
     for (let i = 0; i < argumentDefs.length; i++) {
       const argDef = argumentDefs[i];
+      if (!argDef) continue;
       
       if (argDef.multiple) {
         // Take all remaining arguments
