@@ -10,7 +10,7 @@ export { CommandBuilder, createCommand } from './core/command-builder';
 
 // Phase 3.2 Enhanced Framework and Execution Engine
 export { EnhancedCliFramework } from './core/enhanced-cli-framework';
-export { 
+export {
   CancellationToken,
   ServiceContainer,
   ExecutionContext,
@@ -22,7 +22,7 @@ export type {
   IServiceContainer
 } from './core/execution-context';
 
-export { 
+export {
   ExecutionPipeline,
   ValidationMiddleware,
   TimingMiddleware,
@@ -38,7 +38,7 @@ export type {
   IPipelineStage
 } from './core/execution-pipeline';
 
-export { 
+export {
   CommandExecutor,
   globalExecutor
 } from './core/command-executor';
@@ -59,13 +59,13 @@ export type * from './types/validation';
 export type * from './types/registry';
 
 // Error classes
-export { 
-  CliError, 
-  ValidationError, 
-  CommandNotFoundError, 
-  CommandExecutionError, 
-  ConfigurationError, 
-  PluginError 
+export {
+  CliError,
+  ValidationError,
+  CommandNotFoundError,
+  CommandExecutionError,
+  ConfigurationError,
+  PluginError
 } from './types/errors';
 
 // Performance Optimizations

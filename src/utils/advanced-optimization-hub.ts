@@ -239,16 +239,16 @@ export class AdvancedOptimizationHub extends EventEmitter {
 
         // Get memory metrics
         const memoryReport = this.suite.memory.getMemoryReport();
-        
+
         // Calculate overall performance score
         const performanceScore = this.calculatePerformanceScore({
             cpuScore: Math.min(100, cpuAnalytics.averageImprovement + 50),
             cacheScore: Math.min(100, cacheStats.hitRatio),
             networkScore: Math.min(100, 100 - (networkStats.averageResponseTime / 20)),
             devtoolsScore: Math.min(100, 100 - (devMetrics.buildTime / 100)),
-            memoryScore: memoryReport.memoryPressure.level === 'low' ? 100 : 
-                        memoryReport.memoryPressure.level === 'medium' ? 75 :
-                        memoryReport.memoryPressure.level === 'high' ? 50 : 25
+            memoryScore: memoryReport.memoryPressure.level === 'low' ? 100 :
+                memoryReport.memoryPressure.level === 'medium' ? 75 :
+                    memoryReport.memoryPressure.level === 'high' ? 50 : 25
         });
 
         const optimizationLevel = this.getOptimizationLevel(performanceScore);
