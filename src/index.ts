@@ -12,16 +12,17 @@ export { CommandBuilder, createCommand } from './core/command-builder';
 export { EnhancedCliFramework } from './core/enhanced-cli-framework';
 export { 
   CancellationToken,
-  IExecutionContext,
-  IServiceContainer,
   ServiceContainer,
   ExecutionContext,
   ServiceTokens
 } from './core/execution-context';
+
+export type {
+  IExecutionContext,
+  IServiceContainer
+} from './core/execution-context';
+
 export { 
-  IMiddleware,
-  MiddlewareFunction,
-  IPipelineStage,
   ExecutionPipeline,
   ValidationMiddleware,
   TimingMiddleware,
@@ -30,11 +31,21 @@ export {
   LifecycleMiddleware,
   PipelineFactory
 } from './core/execution-pipeline';
+
+export type {
+  IMiddleware,
+  MiddlewareFunction,
+  IPipelineStage
+} from './core/execution-pipeline';
+
 export { 
   CommandExecutor,
-  IExecutionOptions,
-  IExecutionStats,
   globalExecutor
+} from './core/command-executor';
+
+export type {
+  IExecutionOptions,
+  IExecutionStats
 } from './core/command-executor';
 
 // Base implementations

@@ -21,17 +21,17 @@ export {
 // Export Phase 3.2 Execution Framework components
 export {
   CancellationToken,
-  IExecutionContext,
-  IServiceContainer,
   ServiceContainer,
   ExecutionContext,
   ServiceTokens
 } from './execution-context';
 
+export type {
+  IExecutionContext,
+  IServiceContainer
+} from './execution-context';
+
 export {
-  IMiddleware,
-  MiddlewareFunction,
-  IPipelineStage,
   ExecutionPipeline,
   ValidationMiddleware,
   TimingMiddleware,
@@ -41,11 +41,20 @@ export {
   PipelineFactory
 } from './execution-pipeline';
 
+export type {
+  IMiddleware,
+  MiddlewareFunction,
+  IPipelineStage
+} from './execution-pipeline';
+
 export {
   CommandExecutor,
-  IExecutionOptions,
-  IExecutionStats,
   globalExecutor
+} from './command-executor';
+
+export type {
+  IExecutionOptions,
+  IExecutionStats
 } from './command-executor';
 
 // Export argument parser
