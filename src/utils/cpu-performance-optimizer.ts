@@ -87,9 +87,9 @@ export class CPUPerformanceOptimizer extends EventEmitter {
     private detectSIMDSupport(): void {
         try {
             // Check for WebAssembly SIMD support
-            const simdSupported = typeof WebAssembly !== 'undefined' && 
-                                 WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]));
-            
+            const simdSupported = typeof WebAssembly !== 'undefined' &&
+                WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]));
+
             if (simdSupported) {
                 console.log('🧮 SIMD optimizations available');
             }
@@ -144,19 +144,19 @@ export class CPUPerformanceOptimizer extends EventEmitter {
      */
     private shouldUseWorkerThread(task: CPUTask): boolean {
         if (!this.config.enableWorkerThreads) return false;
-        
+
         return task.estimatedComplexity > this.config.taskSizeThreshold ||
-               task.type === 'compute' ||
-               this.activeWorkers < this.config.maxWorkers;
+            task.type === 'compute' ||
+            this.activeWorkers < this.config.maxWorkers;
     }
 
     /**
      * Determine if task should use SIMD optimizations
      */
     private shouldUseSIMD(task: CPUTask): boolean {
-        return this.config.enableSIMD && 
-               (task.type === 'parse' || task.type === 'transform') &&
-               task.estimatedComplexity > 500;
+        return this.config.enableSIMD &&
+            (task.type === 'parse' || task.type === 'transform') &&
+            task.estimatedComplexity > 500;
     }
 
     /**
@@ -214,16 +214,16 @@ export class CPUPerformanceOptimizer extends EventEmitter {
             // Process multiple items simultaneously using SIMD-style operations
             const batchSize = 8; // Process 8 items at once
             const results = [];
-            
+
             for (let i = 0; i < data.length; i += batchSize) {
                 const batch = data.slice(i, i + batchSize);
                 const batchResults = batch.map(item => this.fastParse(item));
                 results.push(...batchResults);
             }
-            
+
             return results;
         }
-        
+
         return data;
     }
 
@@ -265,17 +265,17 @@ export class CPUPerformanceOptimizer extends EventEmitter {
         if (Array.isArray(data)) {
             const transformedData = new Array(data.length);
             const batchSize = 16; // Optimal for most CPU cache lines
-            
+
             for (let i = 0; i < data.length; i += batchSize) {
                 const batchEnd = Math.min(i + batchSize, data.length);
                 for (let j = i; j < batchEnd; j++) {
                     transformedData[j] = this.fastTransform(data[j]);
                 }
             }
-            
+
             return transformedData;
         }
-        
+
         return this.fastTransform(data);
     }
 
@@ -298,13 +298,13 @@ export class CPUPerformanceOptimizer extends EventEmitter {
     private fastHash(str: string): number {
         let hash = 0;
         if (str.length === 0) return hash;
-        
+
         // Use FNV-1a hash for speed
         for (let i = 0; i < str.length; i++) {
             hash ^= str.charCodeAt(i);
             hash *= 0x01000193; // FNV prime
         }
-        
+
         return hash >>> 0; // Convert to unsigned 32-bit integer
     }
 
@@ -334,7 +334,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
         // Use object pooling for intermediate results
         const parsePool = this.getParseResultPool();
         const result = parsePool.acquire();
-        
+
         try {
             // Implement high-performance parsing logic
             result.parsed = data;
@@ -352,7 +352,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
         // Return existing pool from advanced-object-pool
         return {
             acquire: () => ({ parsed: null, meta: null }),
-            release: () => {} // Will integrate with actual pool
+            release: () => { } // Will integrate with actual pool
         };
     }
 
@@ -362,19 +362,19 @@ export class CPUPerformanceOptimizer extends EventEmitter {
     private optimizedValidation(data: any): any {
         // Implement fast validation with early returns
         if (!data) return { valid: false, reason: 'empty' };
-        
+
         // Use bit flags for multiple validation checks
         let validationFlags = 0;
         const REQUIRED_PRESENT = 1;
         const TYPE_VALID = 2;
         const FORMAT_VALID = 4;
-        
+
         if (data.value !== undefined) validationFlags |= REQUIRED_PRESENT;
         if (typeof data.value === data.expectedType) validationFlags |= TYPE_VALID;
         if (this.isFormatValid(data.value, data.format)) validationFlags |= FORMAT_VALID;
-        
+
         const isValid = validationFlags === (REQUIRED_PRESENT | TYPE_VALID | FORMAT_VALID);
-        
+
         return {
             valid: isValid,
             flags: validationFlags,
@@ -387,7 +387,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
      */
     private isFormatValid(value: any, format?: string): boolean {
         if (!format) return true;
-        
+
         // Use pre-compiled regex for format validation
         const formatPattern = this.getFormatPattern(format);
         return formatPattern ? formatPattern.test(String(value)) : true;
@@ -403,7 +403,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
             'uuid': /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
             'semver': /^\d+\.\d+\.\d+/
         };
-        
+
         return patterns[format] || null;
     }
 
@@ -433,21 +433,21 @@ export class CPUPerformanceOptimizer extends EventEmitter {
             // Use Kahan summation for numerical stability
             let sum = 0;
             let c = 0; // Compensation for lost low-order bits
-            
+
             for (const value of data) {
                 const y = Number(value) - c;
                 const t = sum + y;
                 c = (t - sum) - y;
                 sum = t;
             }
-            
+
             return {
                 sum,
                 average: sum / data.length,
                 count: data.length
             };
         }
-        
+
         return data;
     }
 
@@ -459,10 +459,10 @@ export class CPUPerformanceOptimizer extends EventEmitter {
         const startUsage = process.cpuUsage();
         await new Promise(resolve => setTimeout(resolve, 100));
         const endUsage = process.cpuUsage(startUsage);
-        
+
         const totalUsage = endUsage.user + endUsage.system;
         const utilization = totalUsage / 1000000; // Convert to seconds
-        
+
         return Math.min(100, utilization * 10); // Rough percentage
     }
 
@@ -471,17 +471,17 @@ export class CPUPerformanceOptimizer extends EventEmitter {
      */
     private calculateImprovement(taskType: string, executionTime: number): number {
         const baseline = this.cpuBaselines.get(taskType) || executionTime;
-        
+
         if (!this.cpuBaselines.has(taskType)) {
             this.cpuBaselines.set(taskType, executionTime);
             return 0;
         }
-        
+
         const improvement = ((baseline - executionTime) / baseline) * 100;
-        
+
         // Update baseline with exponential moving average
         this.cpuBaselines.set(taskType, baseline * 0.9 + executionTime * 0.1);
-        
+
         return Math.max(0, improvement);
     }
 
@@ -497,7 +497,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
         const history = this.optimizationHistory;
         const methodCounts: Record<string, number> = {};
         const methodImprovements: Record<string, number[]> = {};
-        
+
         for (const result of history) {
             methodCounts[result.method] = (methodCounts[result.method] || 0) + 1;
             if (!methodImprovements[result.method]) {
@@ -505,16 +505,16 @@ export class CPUPerformanceOptimizer extends EventEmitter {
             }
             methodImprovements[result.method].push(result.improvement);
         }
-        
+
         const topPerformingMethods = Object.entries(methodImprovements)
             .map(([method, improvements]) => ({
                 method,
                 avgImprovement: improvements.reduce((a, b) => a + b, 0) / improvements.length
             }))
             .sort((a, b) => b.avgImprovement - a.avgImprovement);
-        
+
         const totalImprovement = history.reduce((sum, r) => sum + r.improvement, 0);
-        
+
         return {
             totalTasks: history.length,
             averageImprovement: history.length > 0 ? totalImprovement / history.length : 0,
@@ -529,7 +529,7 @@ export class CPUPerformanceOptimizer extends EventEmitter {
     getOptimizationReport(): string {
         const analytics = this.getAnalytics();
         const recentResults = this.optimizationHistory.slice(-10);
-        
+
         return `
 ⚡ CPU PERFORMANCE OPTIMIZATION REPORT
 =====================================
@@ -545,18 +545,18 @@ export class CPUPerformanceOptimizer extends EventEmitter {
 • Average Improvement: ${analytics.averageImprovement.toFixed(1)}%
 • Method Distribution:
 ${Object.entries(analytics.methodDistribution)
-    .map(([method, count]) => `  • ${method}: ${count} tasks`)
-    .join('\n')}
+                .map(([method, count]) => `  • ${method}: ${count} tasks`)
+                .join('\n')}
 
 🏆 Top Performing Methods:
 ${analytics.topPerformingMethods.slice(0, 3)
-    .map((entry, idx) => `${idx + 1}. ${entry.method}: ${entry.avgImprovement.toFixed(1)}% avg improvement`)
-    .join('\n')}
+                .map((entry, idx) => `${idx + 1}. ${entry.method}: ${entry.avgImprovement.toFixed(1)}% avg improvement`)
+                .join('\n')}
 
 ⚡ Recent Optimizations:
-${recentResults.slice(-5).map(result => 
-    `• ${result.taskId} (${result.method}): ${result.improvement.toFixed(1)}% improvement, ${result.executionTime.toFixed(2)}ms`
-).join('\n')}
+${recentResults.slice(-5).map(result =>
+                    `• ${result.taskId} (${result.method}): ${result.improvement.toFixed(1)}% improvement, ${result.executionTime.toFixed(2)}ms`
+                ).join('\n')}
 
 💻 System Info:
 • CPU Cores: ${require('os').cpus().length}
@@ -590,7 +590,7 @@ ${recentResults.slice(-5).map(result =>
 // Worker thread execution logic
 if (!isMainThread && workerData?.isWorker) {
     const { task } = workerData;
-    
+
     // Execute task in worker thread
     let result;
     switch (task.type) {
@@ -603,7 +603,7 @@ if (!isMainThread && workerData?.isWorker) {
         default:
             result = task.data;
     }
-    
+
     parentPort?.postMessage(result);
 }
 

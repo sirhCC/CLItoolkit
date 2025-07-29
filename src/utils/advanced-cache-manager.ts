@@ -109,7 +109,7 @@ export class AdvancedCacheManager extends EventEmitter {
 
             this.isInitialized = true;
             console.log('✅ Advanced Cache Manager initialized');
-            
+
             this.emit('cache:initialized', {
                 memoryEnabled: this.config.enableMemoryCache,
                 diskEnabled: this.config.enableDiskCache,
@@ -128,11 +128,11 @@ export class AdvancedCacheManager extends EventEmitter {
     private async initializeDiskCache(): Promise<void> {
         try {
             await fs.mkdir(this.config.cacheDirectory, { recursive: true });
-            
+
             // Create subdirectories for organization
             await fs.mkdir(path.join(this.config.cacheDirectory, 'data'), { recursive: true });
             await fs.mkdir(path.join(this.config.cacheDirectory, 'metadata'), { recursive: true });
-            
+
             console.log(`📁 Disk cache initialized at: ${this.config.cacheDirectory}`);
         } catch (error) {
             console.error('Failed to initialize disk cache:', error);
@@ -146,7 +146,7 @@ export class AdvancedCacheManager extends EventEmitter {
     private async initializeEncryption(): Promise<void> {
         // Generate or load encryption key
         const keyPath = path.join(this.config.cacheDirectory, '.cache-key');
-        
+
         try {
             const existingKey = await fs.readFile(keyPath);
             this.encryptionKey = existingKey;
@@ -155,7 +155,7 @@ export class AdvancedCacheManager extends EventEmitter {
             this.encryptionKey = crypto.randomBytes(32);
             await fs.writeFile(keyPath, this.encryptionKey, { mode: 0o600 });
         }
-        
+
         console.log('🔐 Cache encryption initialized');
     }
 
@@ -187,7 +187,7 @@ export class AdvancedCacheManager extends EventEmitter {
                     if (this.config.enableMemoryCache) {
                         await this.setInMemory(key, diskResult);
                     }
-                    
+
                     this.recordAccessTime(performance.now() - startTime);
                     this.stats.diskHits++;
                     this.updateHitRatio();
@@ -213,8 +213,8 @@ export class AdvancedCacheManager extends EventEmitter {
      * Set value in cache with intelligent distribution
      */
     async set<T>(
-        key: string, 
-        value: T, 
+        key: string,
+        value: T,
         options?: { ttl?: number; metadata?: Record<string, any> }
     ): Promise<void> {
         try {
@@ -257,7 +257,7 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     private async getFromMemory<T>(key: string): Promise<T | null> {
         const entry = this.memoryCache.get(key);
-        
+
         if (!entry) {
             return null;
         }
@@ -440,7 +440,7 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     private async evictLRUEntries(requiredSpace: number): Promise<void> {
         let freedSpace = 0;
-        
+
         while (freedSpace < requiredSpace && this.accessQueue.length > 0) {
             const keyToEvict = this.accessQueue.shift();
             if (keyToEvict && this.memoryCache.has(keyToEvict)) {
@@ -487,11 +487,11 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     private encrypt(data: Buffer): Buffer {
         if (!this.encryptionKey) throw new Error('Encryption key not initialized');
-        
+
         const iv = crypto.randomBytes(16);
         const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
         const encrypted = Buffer.concat([cipher.update(data), cipher.final()]);
-        
+
         return Buffer.concat([iv, encrypted]);
     }
 
@@ -500,11 +500,11 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     private decrypt(data: Buffer): Buffer {
         if (!this.encryptionKey) throw new Error('Encryption key not initialized');
-        
+
         const iv = data.slice(0, 16);
         const encrypted = data.slice(16);
         const decipher = crypto.createDecipher('aes-256-cbc', this.encryptionKey);
-        
+
         return Buffer.concat([decipher.update(encrypted), decipher.final()]);
     }
 
@@ -516,10 +516,10 @@ export class AdvancedCacheManager extends EventEmitter {
             const hashedKey = this.hashKey(key);
             const metadataPath = path.join(this.config.cacheDirectory, 'metadata', `${hashedKey}.json`);
             const dataPath = path.join(this.config.cacheDirectory, 'data', `${hashedKey}.cache`);
-            
+
             await Promise.all([
-                fs.unlink(metadataPath).catch(() => {}),
-                fs.unlink(dataPath).catch(() => {})
+                fs.unlink(metadataPath).catch(() => { }),
+                fs.unlink(dataPath).catch(() => { })
             ]);
         } catch (error) {
             // Ignore deletion errors
@@ -533,7 +533,7 @@ export class AdvancedCacheManager extends EventEmitter {
         try {
             const metadataDir = path.join(this.config.cacheDirectory, 'metadata');
             const files = await fs.readdir(metadataDir);
-            
+
             let loadedCount = 0;
             for (const file of files) {
                 if (file.endsWith('.json')) {
@@ -541,7 +541,7 @@ export class AdvancedCacheManager extends EventEmitter {
                         const metadataPath = path.join(metadataDir, file);
                         const content = await fs.readFile(metadataPath, 'utf-8');
                         const metadata: CacheEntry = JSON.parse(content);
-                        
+
                         // Check if still valid
                         if (!this.isExpired(metadata)) {
                             // Only load frequently accessed items to memory
@@ -562,7 +562,7 @@ export class AdvancedCacheManager extends EventEmitter {
                     }
                 }
             }
-            
+
             console.log(`📥 Loaded ${loadedCount} cache entries from disk`);
         } catch (error) {
             console.warn('Failed to load cache from disk:', error);
@@ -574,13 +574,13 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     private recordAccessTime(time: number): void {
         this.accessTimes.push(time);
-        
+
         // Keep only recent access times (last 1000)
         if (this.accessTimes.length > 1000) {
             this.accessTimes = this.accessTimes.slice(-1000);
         }
-        
-        this.stats.averageAccessTime = 
+
+        this.stats.averageAccessTime =
             this.accessTimes.reduce((sum, t) => sum + t, 0) / this.accessTimes.length;
     }
 
@@ -588,10 +588,10 @@ export class AdvancedCacheManager extends EventEmitter {
      * Update hit ratio statistics
      */
     private updateHitRatio(): void {
-        const totalRequests = this.stats.memoryHits + this.stats.memoryMisses + 
-                            this.stats.diskHits + this.stats.diskMisses;
+        const totalRequests = this.stats.memoryHits + this.stats.memoryMisses +
+            this.stats.diskHits + this.stats.diskMisses;
         const totalHits = this.stats.memoryHits + this.stats.diskHits;
-        
+
         this.stats.hitRatio = totalRequests > 0 ? (totalHits / totalRequests) * 100 : 0;
     }
 
@@ -600,7 +600,7 @@ export class AdvancedCacheManager extends EventEmitter {
      */
     async delete(key: string): Promise<boolean> {
         let deleted = false;
-        
+
         // Delete from memory
         if (this.memoryCache.has(key)) {
             const entry = this.memoryCache.get(key);
@@ -612,17 +612,17 @@ export class AdvancedCacheManager extends EventEmitter {
             this.removeFromAccessQueue(key);
             deleted = true;
         }
-        
+
         // Delete from disk
         if (this.config.enableDiskCache) {
             await this.deleteDiskEntry(key);
             deleted = true;
         }
-        
+
         if (deleted) {
             this.emit('cache:delete', { key });
         }
-        
+
         return deleted;
     }
 
@@ -633,27 +633,27 @@ export class AdvancedCacheManager extends EventEmitter {
         // Clear memory cache
         this.memoryCache.clear();
         this.accessQueue = [];
-        
+
         // Clear disk cache
         if (this.config.enableDiskCache) {
             try {
                 const dataDir = path.join(this.config.cacheDirectory, 'data');
                 const metadataDir = path.join(this.config.cacheDirectory, 'metadata');
-                
+
                 const [dataFiles, metadataFiles] = await Promise.all([
                     fs.readdir(dataDir).catch(() => []),
                     fs.readdir(metadataDir).catch(() => [])
                 ]);
-                
+
                 await Promise.all([
-                    ...dataFiles.map(file => fs.unlink(path.join(dataDir, file)).catch(() => {})),
-                    ...metadataFiles.map(file => fs.unlink(path.join(metadataDir, file)).catch(() => {}))
+                    ...dataFiles.map(file => fs.unlink(path.join(dataDir, file)).catch(() => { })),
+                    ...metadataFiles.map(file => fs.unlink(path.join(metadataDir, file)).catch(() => { }))
                 ]);
             } catch (error) {
                 console.warn('Failed to clear disk cache:', error);
             }
         }
-        
+
         // Reset stats
         this.stats = {
             memoryHits: 0,
@@ -666,7 +666,7 @@ export class AdvancedCacheManager extends EventEmitter {
             averageAccessTime: 0,
             evictionCount: 0
         };
-        
+
         this.emit('cache:cleared');
         console.log('🧹 Cache cleared');
     }
@@ -685,7 +685,7 @@ export class AdvancedCacheManager extends EventEmitter {
         const memoryUsageMB = this.calculateMemoryUsage() / (1024 * 1024);
         const maxMemoryMB = this.config.memoryCacheSize;
         const memoryUtilization = (memoryUsageMB / maxMemoryMB) * 100;
-        
+
         return `
 🚀 ADVANCED CACHE PERFORMANCE REPORT
 ===================================
@@ -726,27 +726,27 @@ ${this.generateRecommendations()}
      */
     private generateRecommendations(): string {
         const recommendations: string[] = [];
-        
+
         if (this.stats.hitRatio < 70) {
             recommendations.push('• Consider increasing cache size or TTL');
         }
-        
+
         if (this.stats.evictionCount > this.stats.entryCount * 0.3) {
             recommendations.push('• Memory cache may be too small for workload');
         }
-        
+
         if (this.stats.averageAccessTime > 50) {
             recommendations.push('• Consider enabling compression or disk optimization');
         }
-        
+
         if (this.stats.diskHits > this.stats.memoryHits * 2) {
             recommendations.push('• Consider increasing memory cache size');
         }
-        
+
         if (recommendations.length === 0) {
             recommendations.push('• Cache performance is optimal! 🎉');
         }
-        
+
         return recommendations.join('\n');
     }
 
@@ -765,7 +765,7 @@ ${this.generateRecommendations()}
         // Persist important cache entries to disk
         if (this.config.enableDiskCache && this.memoryCache.size > 0) {
             console.log('💾 Persisting cache entries to disk...');
-            
+
             const promises = Array.from(this.memoryCache.entries()).map(async ([key, entry]) => {
                 if (entry.accessCount >= 2) { // Only persist frequently used entries
                     try {
@@ -775,10 +775,10 @@ ${this.generateRecommendations()}
                     }
                 }
             });
-            
+
             await Promise.all(promises);
         }
-        
+
         this.removeAllListeners();
         console.log('🧹 Advanced Cache Manager destroyed');
     }

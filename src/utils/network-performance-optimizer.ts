@@ -152,7 +152,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
             while (this.requestQueue.length > 0 && this.activeRequests < this.maxConcurrentRequests) {
                 const { options, resolve, reject } = this.requestQueue.shift()!;
                 this.activeRequests++;
-                
+
                 try {
                     const response = await this.executeRequest(options);
                     resolve(response);
@@ -186,7 +186,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
 
             // Execute request with retries
             const response = await this.executeWithRetry(options);
-            
+
             // Cache successful responses
             if (this.shouldCacheResponse(options, response)) {
                 this.cacheResponse(options, response);
@@ -209,9 +209,9 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      * Execute request with retry logic
      */
     private async executeWithRetry<T>(options: RequestOptions): Promise<NetworkResponse<T>> {
-        const maxAttempts = (options.enableRetry ?? this.config.enableRetry) ? 
-                           this.config.retryAttempts : 1;
-        
+        const maxAttempts = (options.enableRetry ?? this.config.enableRetry) ?
+            this.config.retryAttempts : 1;
+
         let lastError: Error | null = null;
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -219,7 +219,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
                 return await this.executeHttpRequest<T>(options);
             } catch (error) {
                 lastError = error as Error;
-                
+
                 if (attempt < maxAttempts) {
                     this.stats.retryCount++;
                     const delay = this.config.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
@@ -237,12 +237,12 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     private async executeHttpRequest<T>(options: RequestOptions): Promise<NetworkResponse<T>> {
         const startTime = performance.now();
-        
+
         return new Promise((resolve, reject) => {
             const url = new URL(options.url);
             const isHttps = url.protocol === 'https:';
             const agent = this.connectionPool.get(url.protocol);
-            
+
             // Prepare request options
             const requestOptions: any = {
                 hostname: url.hostname,
@@ -274,7 +274,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
                 if (res.headers['content-encoding']) {
                     const encoding = res.headers['content-encoding'];
                     compressed = true;
-                    
+
                     if (encoding === 'gzip') {
                         const zlib = require('zlib');
                         stream = res.pipe(zlib.createGunzip());
@@ -347,13 +347,13 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
 
             // Send request body if present
             if (options.body) {
-                const body = typeof options.body === 'string' ? 
-                           options.body : JSON.stringify(options.body);
-                
+                const body = typeof options.body === 'string' ?
+                    options.body : JSON.stringify(options.body);
+
                 if (!requestOptions.headers['Content-Type']) {
                     requestOptions.headers['Content-Type'] = 'application/json';
                 }
-                
+
                 req.write(body);
             }
 
@@ -366,7 +366,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     private shouldUseCache(options: RequestOptions): boolean {
         return (options.enableCache ?? this.config.enableCaching) &&
-               (options.method === 'GET' || !options.method);
+            (options.method === 'GET' || !options.method);
     }
 
     /**
@@ -375,9 +375,9 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
     private getCachedResponse<T>(options: RequestOptions): NetworkResponse<T> | null {
         const cacheKey = this.getCacheKey(options);
         const cached = this.responseCache.get(cacheKey);
-        
+
         if (!cached) return null;
-        
+
         // Check if cache is expired
         if (Date.now() - cached.timestamp > this.config.cacheTimeout) {
             this.responseCache.delete(cacheKey);
@@ -400,8 +400,8 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     private shouldCacheResponse<T>(options: RequestOptions, response: NetworkResponse<T>): boolean {
         return this.shouldUseCache(options) &&
-               response.status >= 200 && response.status < 300 &&
-               (options.method === 'GET' || !options.method);
+            response.status >= 200 && response.status < 300 &&
+            (options.method === 'GET' || !options.method);
     }
 
     /**
@@ -435,13 +435,13 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
     private cleanupCache(): void {
         const now = Date.now();
         const expiredKeys: string[] = [];
-        
+
         for (const [key, cached] of this.responseCache.entries()) {
             if (now - cached.timestamp > this.config.cacheTimeout) {
                 expiredKeys.push(key);
             }
         }
-        
+
         for (const key of expiredKeys) {
             this.responseCache.delete(key);
         }
@@ -459,13 +459,13 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     private recordResponseTime(time: number): void {
         this.responseTimes.push(time);
-        
+
         // Keep only recent response times
         if (this.responseTimes.length > 1000) {
             this.responseTimes = this.responseTimes.slice(-1000);
         }
-        
-        this.stats.averageResponseTime = 
+
+        this.stats.averageResponseTime =
             this.responseTimes.reduce((sum, t) => sum + t, 0) / this.responseTimes.length;
     }
 
@@ -481,22 +481,22 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     async batchRequests<T>(requests: RequestOptions[]): Promise<NetworkResponse<T>[]> {
         console.log(`🚀 Executing batch of ${requests.length} requests`);
-        
+
         // Group requests by priority
         const highPriority = requests.filter(r => r.priority === 'high');
         const normalPriority = requests.filter(r => r.priority === 'normal' || !r.priority);
         const lowPriority = requests.filter(r => r.priority === 'low');
-        
+
         const results: NetworkResponse<T>[] = [];
-        
+
         // Execute high priority first
         for (const group of [highPriority, normalPriority, lowPriority]) {
             if (group.length === 0) continue;
-            
+
             const batchResults = await Promise.allSettled(
                 group.map(request => this.request<T>(request))
             );
-            
+
             for (const result of batchResults) {
                 if (result.status === 'fulfilled') {
                     results.push(result.value);
@@ -514,7 +514,7 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
                 }
             }
         }
-        
+
         return results;
     }
 
@@ -523,14 +523,14 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      */
     async prefetch(urls: string[]): Promise<void> {
         console.log(`🔄 Prefetching ${urls.length} resources`);
-        
+
         const prefetchOptions: RequestOptions[] = urls.map(url => ({
             url,
             method: 'GET',
             priority: 'low',
             enableCache: true
         }));
-        
+
         // Execute prefetch requests without waiting
         this.batchRequests(prefetchOptions).catch(error => {
             console.warn('Prefetch failed:', error);
@@ -548,13 +548,13 @@ export class NetworkPerformanceOptimizer extends EventEmitter {
      * Get comprehensive network performance report
      */
     getNetworkReport(): string {
-        const successRate = this.stats.totalRequests > 0 ? 
-                          (this.stats.successfulRequests / this.stats.totalRequests) * 100 : 0;
-        const cacheHitRate = this.stats.totalRequests > 0 ? 
-                           (this.stats.cacheHits / this.stats.totalRequests) * 100 : 0;
-        const connectionReuseRate = this.stats.successfulRequests > 0 ? 
-                                  (this.stats.connectionReuse / this.stats.successfulRequests) * 100 : 0;
-        
+        const successRate = this.stats.totalRequests > 0 ?
+            (this.stats.successfulRequests / this.stats.totalRequests) * 100 : 0;
+        const cacheHitRate = this.stats.totalRequests > 0 ?
+            (this.stats.cacheHits / this.stats.totalRequests) * 100 : 0;
+        const connectionReuseRate = this.stats.successfulRequests > 0 ?
+            (this.stats.connectionReuse / this.stats.successfulRequests) * 100 : 0;
+
         return `
 🌐 NETWORK PERFORMANCE OPTIMIZATION REPORT
 ==========================================
@@ -596,35 +596,35 @@ ${this.generateNetworkRecommendations()}
      */
     private generateNetworkRecommendations(): string {
         const recommendations: string[] = [];
-        const successRate = this.stats.totalRequests > 0 ? 
-                          (this.stats.successfulRequests / this.stats.totalRequests) * 100 : 0;
-        const cacheHitRate = this.stats.totalRequests > 0 ? 
-                           (this.stats.cacheHits / this.stats.totalRequests) * 100 : 0;
-        
+        const successRate = this.stats.totalRequests > 0 ?
+            (this.stats.successfulRequests / this.stats.totalRequests) * 100 : 0;
+        const cacheHitRate = this.stats.totalRequests > 0 ?
+            (this.stats.cacheHits / this.stats.totalRequests) * 100 : 0;
+
         if (successRate < 95) {
             recommendations.push('• Consider increasing retry attempts or timeout values');
         }
-        
+
         if (cacheHitRate < 30 && this.stats.totalRequests > 10) {
             recommendations.push('• Enable caching or increase cache timeout for better performance');
         }
-        
+
         if (this.stats.averageResponseTime > 1000) {
             recommendations.push('• Consider enabling compression or connection pooling');
         }
-        
+
         if (this.stats.connectionReuse < this.stats.successfulRequests * 0.5) {
             recommendations.push('• Enable or optimize connection pooling');
         }
-        
+
         if (this.requestQueue.length > 10) {
             recommendations.push('• Consider increasing maxConcurrentRequests for better throughput');
         }
-        
+
         if (recommendations.length === 0) {
             recommendations.push('• Network performance is optimal! 🎉');
         }
-        
+
         return recommendations.join('\n');
     }
 
@@ -633,12 +633,12 @@ ${this.generateNetworkRecommendations()}
      */
     updateConfig(newConfig: Partial<NetworkConfig>): void {
         this.config = { ...this.config, ...newConfig };
-        
+
         // Reinitialize if connection pooling settings changed
         if (newConfig.enableConnectionPooling !== undefined || newConfig.maxConnections !== undefined) {
             this.initializeConnectionPooling();
         }
-        
+
         console.log('⚙️ Network optimizer configuration updated');
     }
 
@@ -660,12 +660,12 @@ ${this.generateNetworkRecommendations()}
                 agent.destroy();
             }
         }
-        
+
         this.connectionPool.clear();
         this.responseCache.clear();
         this.requestQueue = [];
         this.removeAllListeners();
-        
+
         console.log('🧹 Network Performance Optimizer destroyed');
     }
 }

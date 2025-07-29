@@ -118,7 +118,7 @@ export class DevToolsOptimizer extends EventEmitter {
 
             this.isInitialized = true;
             console.log('✅ Enhanced Development Tools initialized');
-            
+
             this.emit('devtools:initialized');
 
         } catch (error) {
@@ -135,13 +135,13 @@ export class DevToolsOptimizer extends EventEmitter {
 
         // Create VS Code configuration files
         await this.createVSCodeConfig();
-        
+
         // Set up task definitions
         await this.createVSCodeTasks();
-        
+
         // Configure launch configurations
         await this.createLaunchConfig();
-        
+
         // Set up workspace settings
         await this.createWorkspaceSettings();
 
@@ -153,7 +153,7 @@ export class DevToolsOptimizer extends EventEmitter {
      */
     private async createVSCodeConfig(): Promise<void> {
         const vscodeDir = path.join(this.config.workspaceRoot, '.vscode');
-        
+
         try {
             await fs.mkdir(vscodeDir, { recursive: true });
         } catch (error) {
@@ -354,13 +354,13 @@ export class DevToolsOptimizer extends EventEmitter {
 
         // Create source map configuration
         const sourceMapsDir = path.join(this.config.workspaceRoot, 'sourcemaps');
-        
+
         try {
             await fs.mkdir(sourceMapsDir, { recursive: true });
-            
+
             // Create source map utility
             await this.createSourceMapUtility();
-            
+
             console.log('✅ Source maps configured');
         } catch (error) {
             console.warn('Failed to configure source maps:', error);
@@ -473,7 +473,7 @@ module.exports = { SourceMapManager };
     private async setupFileWatcher(pattern: string): Promise<void> {
         try {
             const chokidar = require('chokidar');
-            
+
             const watcher = chokidar.watch(pattern, {
                 ignored: /node_modules|\.git/,
                 persistent: true,
@@ -507,27 +507,27 @@ module.exports = { SourceMapManager };
      */
     private async triggerRebuild(filePath: string): Promise<void> {
         const startTime = performance.now();
-        
+
         try {
             // Determine build command based on file type
             const ext = path.extname(filePath);
             let buildCommand = 'npm run build';
-            
+
             if (ext === '.ts') {
                 buildCommand = 'npx tsc --incremental';
             }
 
             console.log(`🔨 Rebuilding due to ${path.basename(filePath)} change...`);
-            
+
             // Execute build (implementation would depend on your build system)
             await this.executeBuild(buildCommand);
-            
+
             const buildTime = performance.now() - startTime;
             this.metrics.buildTime = buildTime;
-            
+
             console.log(`✅ Rebuild completed in ${buildTime.toFixed(2)}ms`);
             this.emit('devtools:rebuild-complete', { file: filePath, buildTime });
-            
+
         } catch (error) {
             console.error('❌ Rebuild failed:', error);
             this.metrics.errorCount++;
@@ -540,7 +540,7 @@ module.exports = { SourceMapManager };
      */
     private async executeBuild(command: string): Promise<void> {
         const { exec } = require('child_process');
-        
+
         return new Promise((resolve, reject) => {
             exec(command, { cwd: this.config.workspaceRoot }, (error, stdout, stderr) => {
                 if (error) {
@@ -581,7 +581,7 @@ module.exports = { SourceMapManager };
      */
     startDebugSession(type: 'node' | 'chrome' | 'vscode' = 'node'): string {
         const sessionId = `debug-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         const session: DebugSession = {
             id: sessionId,
             type,
@@ -592,10 +592,10 @@ module.exports = { SourceMapManager };
 
         this.debugSessions.set(sessionId, session);
         this.metrics.debugSessionCount++;
-        
+
         console.log(`🐛 Debug session started: ${sessionId}`);
         this.emit('devtools:debug-session-start', { sessionId, type });
-        
+
         return sessionId;
     }
 
@@ -626,10 +626,10 @@ module.exports = { SourceMapManager };
 
         // Set up performance monitoring
         this.setupPerformanceMonitoring();
-        
+
         // Set up memory profiling
         this.setupMemoryProfiling();
-        
+
         // Set up CPU profiling
         this.setupCPUProfiling();
 
@@ -673,7 +673,7 @@ module.exports = { SourceMapManager };
             };
 
             this.profiles.push(profileData);
-            
+
             // Keep only recent profiles
             if (this.profiles.length > 1000) {
                 this.profiles = this.profiles.slice(-1000);
@@ -690,9 +690,9 @@ module.exports = { SourceMapManager };
         // CPU profiling would be triggered on demand
         this.on('devtools:start-cpu-profile', () => {
             console.log('🧮 Starting CPU profile...');
-            
+
             const startTime = Date.now();
-            
+
             // Implementation would use V8 profiler or similar
             setTimeout(() => {
                 const profileData: ProfileData = {
@@ -706,7 +706,7 @@ module.exports = { SourceMapManager };
 
                 this.profiles.push(profileData);
                 this.metrics.profileGeneratedCount++;
-                
+
                 console.log('✅ CPU profile completed');
                 this.emit('devtools:cpu-profile-complete', profileData);
             }, 5000);
@@ -719,7 +719,7 @@ module.exports = { SourceMapManager };
     getDevToolsReport(): string {
         const activeDebugSessions = Array.from(this.debugSessions.values()).filter(s => s.active);
         const recentProfiles = this.profiles.slice(-10);
-        
+
         return `
 🛠️ ENHANCED DEVELOPMENT TOOLS REPORT
 ===================================
@@ -743,20 +743,20 @@ module.exports = { SourceMapManager };
 • Warnings: ${this.metrics.warningCount}
 
 🐛 Active Debug Sessions:
-${activeDebugSessions.length > 0 ? 
-    activeDebugSessions.map(s => 
-        `• ${s.id} (${s.type}) - ${s.breakpoints.length} breakpoints`
-    ).join('\n') : 
-    '• No active debug sessions'
-}
+${activeDebugSessions.length > 0 ?
+                activeDebugSessions.map(s =>
+                    `• ${s.id} (${s.type}) - ${s.breakpoints.length} breakpoints`
+                ).join('\n') :
+                '• No active debug sessions'
+            }
 
 📊 Recent Profiles:
-${recentProfiles.length > 0 ? 
-    recentProfiles.map(p => 
-        `• ${p.type} profile (${new Date(p.timestamp).toLocaleTimeString()}) - ${p.duration}ms`
-    ).join('\n') : 
-    '• No recent profiles'
-}
+${recentProfiles.length > 0 ?
+                recentProfiles.map(p =>
+                    `• ${p.type} profile (${new Date(p.timestamp).toLocaleTimeString()}) - ${p.duration}ms`
+                ).join('\n') :
+                '• No recent profiles'
+            }
 
 🔧 File Watchers:
 • Active Watchers: ${this.watchers.size}
@@ -777,27 +777,27 @@ ${this.generateDevRecommendations()}
      */
     private generateDevRecommendations(): string {
         const recommendations: string[] = [];
-        
+
         if (this.metrics.buildTime > 5000) {
             recommendations.push('• Consider optimizing build process or enabling incremental builds');
         }
-        
+
         if (this.metrics.errorCount > this.metrics.warningCount * 2) {
             recommendations.push('• Focus on fixing errors to improve development experience');
         }
-        
+
         if (this.metrics.hotReloadCount > 100 && this.metrics.buildTime > 1000) {
             recommendations.push('• Consider faster build tools for frequent hot reloads');
         }
-        
+
         if (this.debugSessions.size === 0 && this.config.enableLiveDebugging) {
             recommendations.push('• Try using debug sessions for better troubleshooting');
         }
-        
+
         if (recommendations.length === 0) {
             recommendations.push('• Development environment is well optimized! 🎉');
         }
-        
+
         return recommendations.join('\n');
     }
 
@@ -838,17 +838,17 @@ ${this.generateDevRecommendations()}
                 await watcher.close();
             }
         }
-        
+
         // Stop all debug sessions
         for (const sessionId of this.debugSessions.keys()) {
             this.stopDebugSession(sessionId);
         }
-        
+
         this.watchers.clear();
         this.debugSessions.clear();
         this.profiles = [];
         this.removeAllListeners();
-        
+
         console.log('🧹 Enhanced Development Tools destroyed');
     }
 }
