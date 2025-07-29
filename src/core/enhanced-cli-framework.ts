@@ -244,12 +244,11 @@ export class EnhancedCliFramework {
       return { command: null, args: [], options: {} };
     }
 
-    // First argument is the command
-    const command = argv[0];
+    let command: string | null = null;
     const positionalArgs: string[] = [];
     const options: Record<string, any> = {};
 
-    let i = 1;
+    let i = 0;
     while (i < argv.length) {
       const arg = argv[i];
 
@@ -300,9 +299,15 @@ export class EnhancedCliFramework {
           }
         }
       }
-      // Positional argument
+      // Command or positional argument
       else {
-        positionalArgs.push(arg);
+        if (command === null) {
+          // First non-option argument is the command
+          command = arg;
+        } else {
+          // Subsequent non-option arguments are positional
+          positionalArgs.push(arg);
+        }
       }
 
       i++;
