@@ -127,8 +127,6 @@ export class ArgumentParser {
     argumentDefs: IValidatedArgument[],
     optionDefs: IValidatedOption[]
   ): Promise<IEnhancedParseResult> {
-    const tokenized = this.tokenize(args);
-    
     // Parse options using original arguments to preserve order
     await this.parseOptions(args, result, optionDefs);
     
