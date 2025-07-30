@@ -202,12 +202,12 @@ export class EnterpriseAnalytics extends EventEmitter {
 
         for (const metricPattern of keyMetrics) {
             const matchingMetrics = this.getMetricsByPattern(metricPattern);
-            
+
             for (const metricName of matchingMetrics) {
                 const analysis = this.analyzeTrend(metricName);
                 if (analysis) {
                     this.trendCache.set(metricName, analysis);
-                    
+
                     // Emit events for significant trends
                     if (analysis.confidence > 0.7) {
                         this.emit('trend:detected', { metricName, analysis });
@@ -241,15 +241,15 @@ export class EnterpriseAnalytics extends EventEmitter {
         const n = points.length;
         const x = points.map((_, i) => i);
         const y = points.map(p => p.value);
-        
+
         const sumX = x.reduce((a, b) => a + b, 0);
         const sumY = y.reduce((a, b) => a + b, 0);
         const sumXY = x.reduce((sum, xi, i) => sum + xi * (y[i] || 0), 0);
         const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
-        
+
         const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
         const intercept = (sumY - slope * sumX) / n;
-        
+
         // Calculate R²
         const yMean = sumY / n;
         const ssTotal = y.reduce((sum, yi) => sum + Math.pow(yi - yMean, 2), 0);
@@ -269,10 +269,10 @@ export class EnterpriseAnalytics extends EventEmitter {
             .map(({ timestamp }) => timestamp);
 
         // Determine direction and confidence
-        const direction: 'improving' | 'degrading' | 'stable' = 
+        const direction: 'improving' | 'degrading' | 'stable' =
             Math.abs(slope) < 0.001 ? 'stable' :
-            slope > 0 ? (metricName.includes('error') || metricName.includes('time') ? 'degrading' : 'improving') :
-            (metricName.includes('error') || metricName.includes('time') ? 'improving' : 'degrading');
+                slope > 0 ? (metricName.includes('error') || metricName.includes('time') ? 'degrading' : 'improving') :
+                    (metricName.includes('error') || metricName.includes('time') ? 'improving' : 'degrading');
 
         const confidence = Math.min(rSquared * (n / 10), 1); // Scale confidence by sample size
 
@@ -328,7 +328,7 @@ export class EnterpriseAnalytics extends EventEmitter {
     private createAlert(severity: string, message: string, timestamp: number): void {
         const alert = { timestamp, severity, message, resolved: false };
         this.alerts.push(alert);
-        
+
         // Keep only last 100 alerts
         if (this.alerts.length > 100) {
             this.alerts.shift();
@@ -361,7 +361,7 @@ export class EnterpriseAnalytics extends EventEmitter {
         // Trend analysis
         lines.push('📈 TREND ANALYSIS:');
         lines.push('─'.repeat(30));
-        
+
         const trendsToShow = Array.from(this.trendCache.entries())
             .filter(([, analysis]) => analysis.confidence > 0.5)
             .sort(([, a], [, b]) => b.confidence - a.confidence)
@@ -369,8 +369,8 @@ export class EnterpriseAnalytics extends EventEmitter {
 
         if (trendsToShow.length > 0) {
             for (const [metricName, analysis] of trendsToShow) {
-                const trendIcon = analysis.direction === 'improving' ? '📈' : 
-                                analysis.direction === 'degrading' ? '📉' : '➡️';
+                const trendIcon = analysis.direction === 'improving' ? '📈' :
+                    analysis.direction === 'degrading' ? '📉' : '➡️';
                 const confidenceBar = '█'.repeat(Math.floor(analysis.confidence * 10));
                 lines.push(`${trendIcon} ${metricName}`);
                 lines.push(`  Confidence: ${confidenceBar} ${(analysis.confidence * 100).toFixed(1)}%`);
@@ -386,7 +386,7 @@ export class EnterpriseAnalytics extends EventEmitter {
         const recentAlerts = this.alerts.filter(a => !a.resolved && Date.now() - a.timestamp < 24 * 60 * 60 * 1000);
         lines.push('🚨 ACTIVE ALERTS:');
         lines.push('─'.repeat(30));
-        
+
         if (recentAlerts.length > 0) {
             for (const alert of recentAlerts.slice(-5)) {
                 const severityIcon = alert.severity === 'high' ? '🔴' : alert.severity === 'medium' ? '🟡' : '🟠';
@@ -402,7 +402,7 @@ export class EnterpriseAnalytics extends EventEmitter {
         // Top metrics
         lines.push('🔝 TOP METRICS (24H):');
         lines.push('─'.repeat(30));
-        
+
         const last24h = Date.now() - 24 * 60 * 60 * 1000;
         const recentPoints = this.dataPoints.filter(dp => dp.timestamp > last24h);
         const metricSummary = new Map<string, { count: number; avg: number; min: number; max: number }>();
@@ -428,7 +428,7 @@ export class EnterpriseAnalytics extends EventEmitter {
 
         lines.push('');
         lines.push('═'.repeat(60));
-        
+
         return lines.join('\n');
     }
 
@@ -437,7 +437,7 @@ export class EnterpriseAnalytics extends EventEmitter {
      */
     exportData(format: 'json' | 'csv' = 'json', metricFilter?: string): string {
         let filteredData = this.dataPoints;
-        
+
         if (metricFilter) {
             try {
                 const regex = new RegExp(metricFilter.replace(/\*/g, '.*'));
@@ -451,7 +451,7 @@ export class EnterpriseAnalytics extends EventEmitter {
 
         if (format === 'csv') {
             const headers = 'timestamp,metricName,value,tags';
-            const rows = filteredData.map(dp => 
+            const rows = filteredData.map(dp =>
                 `${dp.timestamp},${dp.metricName},${dp.value},"${JSON.stringify(dp.tags)}"`
             );
             return [headers, ...rows].join('\n');

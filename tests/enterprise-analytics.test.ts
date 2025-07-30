@@ -23,7 +23,7 @@ describe('EnterpriseAnalytics', () => {
                 memoryUsage: 256 * 1024 * 1024
             }
         });
-        
+
         // Clear any existing data
         EnhancedPerformanceMonitor.clear();
     });
@@ -68,7 +68,7 @@ describe('EnterpriseAnalytics', () => {
 
         test('should retain other config values when partially updating', () => {
             const originalConfig = analytics.getConfig();
-            
+
             analytics.configure({ analyticsRetentionDays: 14 });
             const updatedConfig = analytics.getConfig();
 
@@ -93,7 +93,7 @@ describe('EnterpriseAnalytics', () => {
                 expect(dataPoint).toHaveProperty('metricName');
                 expect(dataPoint).toHaveProperty('value');
                 expect(dataPoint).toHaveProperty('tags');
-                
+
                 if (dataPoint.metricName.includes('test-operation') && !dataReceived) {
                     dataReceived = true;
                     analytics.stopMonitoring();
@@ -106,9 +106,9 @@ describe('EnterpriseAnalytics', () => {
             // Add some test data
             EnhancedPerformanceMonitor.recordOperation('report-test', 15, false);
             EnhancedPerformanceMonitor.recordOperation('report-test', 20, false);
-            
+
             const report = analytics.getEnterpriseReport();
-            
+
             expect(report).toContain('ENTERPRISE ANALYTICS REPORT');
             expect(report).toContain('PERFORMANCE OVERVIEW');
             expect(report).toContain('TREND ANALYSIS');
@@ -122,10 +122,10 @@ describe('EnterpriseAnalytics', () => {
         test('should export data in JSON format', () => {
             // Add some test data
             EnhancedPerformanceMonitor.recordOperation('export-test', 10, false);
-            
+
             const jsonData = analytics.exportData('json');
             const parsed = JSON.parse(jsonData);
-            
+
             expect(parsed).toHaveProperty('exportTime');
             expect(parsed).toHaveProperty('dataPoints');
             expect(parsed).toHaveProperty('trendAnalysis');
@@ -137,12 +137,12 @@ describe('EnterpriseAnalytics', () => {
         test('should export data in CSV format', () => {
             // Add some test data
             EnhancedPerformanceMonitor.recordOperation('csv-test', 15, false);
-            
+
             const csvData = analytics.exportData('csv');
-            
+
             expect(csvData).toContain('timestamp,metricName,value,tags');
             expect(typeof csvData).toBe('string');
-            
+
             const lines = csvData.split('\n');
             expect(lines.length).toBeGreaterThan(1); // At least header + data
         });
@@ -151,15 +151,15 @@ describe('EnterpriseAnalytics', () => {
             // Add test data with different patterns and ensure they're collected
             EnhancedPerformanceMonitor.recordOperation('filter-test-1', 10, false);
             EnhancedPerformanceMonitor.recordOperation('other-operation', 20, false);
-            
+
             // Start and stop monitoring to collect the data
             analytics.startMonitoring(100);
             setTimeout(() => {
                 analytics.stopMonitoring();
-                
+
                 const filteredData = analytics.exportData('json', 'operation.filter-test-1.*');
                 const parsed = JSON.parse(filteredData);
-                
+
                 // Since we've recorded operations, there should be at least one data point
                 expect(parsed.dataPoints.length).toBeGreaterThan(0);
                 done();
@@ -220,7 +220,7 @@ describe('EnterpriseAnalytics', () => {
     describe('Alert System', () => {
         test('should create alerts for poor performance', (done) => {
             let isDone = false;
-            
+
             analytics.configure({
                 alertThresholds: {
                     performanceScore: 95, // Very high threshold to trigger alert
@@ -246,7 +246,7 @@ describe('EnterpriseAnalytics', () => {
             analytics.on('alert:created', alertHandler);
 
             analytics.startMonitoring(100);
-            
+
             // Generate operations that should trigger alerts
             EnhancedPerformanceMonitor.recordOperation('slow-test', 50, false);
         }, 5000);
@@ -255,7 +255,7 @@ describe('EnterpriseAnalytics', () => {
     describe('Trend Analysis', () => {
         test('should detect performance trends', (done) => {
             let isDone = false;
-            
+
             analytics.configure({
                 enablePredictiveAnalytics: true
             });
@@ -293,12 +293,12 @@ describe('EnterpriseAnalytics', () => {
             // Record some operations
             EnhancedPerformanceMonitor.recordOperation('integration-test', 25, false);
             EnhancedPerformanceMonitor.recordOperation('integration-test', 30, true); // with error
-            
+
             const metrics = EnhancedPerformanceMonitor.getMetrics();
             expect(metrics.operations['integration-test']).toBeDefined();
             expect(metrics.operations['integration-test'].count).toBe(2);
             expect(metrics.operations['integration-test'].errorCount).toBe(1);
-            
+
             // The enterprise analytics should be able to read this data
             const report = analytics.getEnterpriseReport();
             expect(report).toContain('ENTERPRISE ANALYTICS REPORT');
@@ -309,7 +309,7 @@ describe('EnterpriseAnalytics', () => {
         test('should handle invalid configuration gracefully', () => {
             // Remove any listeners that might interfere from previous tests
             analytics.removeAllListeners('config:updated');
-            
+
             expect(() => {
                 analytics.configure({
                     analyticsRetentionDays: -1, // Invalid value
@@ -321,7 +321,7 @@ describe('EnterpriseAnalytics', () => {
                     }
                 } as any);
             }).not.toThrow();
-            
+
             // Verify the invalid config was applied (the system should handle it gracefully)
             const config = analytics.getConfig();
             expect(config.analyticsRetentionDays).toBe(-1);
