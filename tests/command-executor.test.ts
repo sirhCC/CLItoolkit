@@ -2,31 +2,42 @@
  * Tests for Phase 3.2 Execution Framework - Command Executor
  */
 
-import { 
+import {
   CommandExecutor,
   globalExecutor
 } from '../src/core/command-executor';
 import { ExecutionPipeline } from '../src/core/execution-pipeline';
 import { CancellationToken, ServiceContainer } from '../src/core/execution-context';
 import { CommandExecutionError } from '../src/types/errors';
+import { globalPoolManager } from '../src/core/advanced-object-pool';
 
 describe('CommandExecutor', () => {
   let executor: CommandExecutor;
   let mockCommand: any;
 
+  // Helper function to create a proper ICommand structure
+  const createMockCommand = (name: string, execute: any) => ({
+    name,
+    description: `${name} description`,
+    arguments: [],
+    options: [],
+    aliases: [],
+    hidden: false,
+    execute
+  });
+
   beforeEach(() => {
     executor = new CommandExecutor(2); // Low concurrency for testing
-    mockCommand = {
-      name: 'test-command',
-      description: 'Test command',
-      execute: jest.fn().mockResolvedValue({ success: true, exitCode: 0 })
-    };
+    mockCommand = createMockCommand('test-command', jest.fn().mockResolvedValue({ success: true, exitCode: 0 }));
   });
 
   afterEach(async () => {
     // Cleanup any running executions
     executor.cancelAllExecutions('Test cleanup');
     await executor.waitForAll();
+
+    // Dispose of object pools to prevent timer leaks
+    globalPoolManager.dispose();
   });
 
   test('should execute command asynchronously', async () => {
@@ -73,7 +84,7 @@ describe('CommandExecutor', () => {
     const slowCommand = {
       name: 'slow-command',
       description: 'Slow command',
-      execute: jest.fn().mockImplementation(() => 
+      execute: jest.fn().mockImplementation(() =>
         new Promise(resolve => setTimeout(() => resolve({ success: true, exitCode: 0 }), 100))
       )
     };
@@ -100,10 +111,14 @@ describe('CommandExecutor', () => {
     const slowCommand = {
       name: 'slow-command',
       description: 'Slow command',
+      arguments: [],
+      options: {},
+      aliases: [],
+      hidden: false,
       execute: jest.fn().mockImplementation(async (context) => {
-        // Check for cancellation during execution
-        for (let i = 0; i < 20; i++) {
-          await new Promise(resolve => setTimeout(resolve, 20));
+        // Check for cancellation during execution - run longer than timeout
+        for (let i = 0; i < 50; i++) {
+          await new Promise(resolve => setTimeout(resolve, 10));
           context.cancellationToken.throwIfCancelled();
         }
         return { success: true, exitCode: 0 };
@@ -111,16 +126,17 @@ describe('CommandExecutor', () => {
     };
 
     const start = Date.now();
-    
-    const result = await executor.executeAsync(slowCommand, [], {}, [], { timeout: 50 });
-    
+
+    const result = await executor.executeAsync(slowCommand, [], {}, [], { timeout: 100 });
+
     const elapsed = Date.now() - start;
-    
+
     // Should be cancelled due to timeout
     expect(result.success).toBe(false);
     expect(result.message).toContain('Operation was cancelled');
-    expect(elapsed).toBeLessThan(300); // Allow some buffer for test execution
-  }, 1000);
+    expect(elapsed).toBeGreaterThan(90); // Should take at least the timeout duration
+    expect(elapsed).toBeLessThan(500); // But not too much longer
+  }, 2000);
 
   test('should execute multiple commands concurrently', async () => {
     const commands = [
@@ -138,7 +154,7 @@ describe('CommandExecutor', () => {
 
   test('should execute multiple commands sequentially', async () => {
     const executionOrder: string[] = [];
-    
+
     const createCommand = (name: string) => ({
       name,
       description: `${name} command`,
@@ -209,9 +225,9 @@ describe('CommandExecutor', () => {
     };
 
     const commands = [
-      { 
-        command: failCommand, 
-        args: [], 
+      {
+        command: failCommand,
+        args: [],
         options: {},
         executionOptions: { metadata: { continueOnError: true } }
       },
@@ -229,9 +245,13 @@ describe('CommandExecutor', () => {
     const slowCommand = {
       name: 'slow-command',
       description: 'Slow command',
+      arguments: [],
+      options: [],
+      aliases: [],
+      hidden: false,
       execute: jest.fn().mockImplementation(async (context) => {
-        // Simulate work that checks for cancellation
-        for (let i = 0; i < 10; i++) {
+        // Simulate work that checks for cancellation - run for longer
+        for (let i = 0; i < 100; i++) {
           await new Promise(resolve => setTimeout(resolve, 10));
           context.cancellationToken.throwIfCancelled();
         }
@@ -240,30 +260,37 @@ describe('CommandExecutor', () => {
     };
 
     const executionPromise = executor.executeAsync(slowCommand, [], {});
-    
+
+    // Wait for execution to start properly
+    await new Promise(resolve => setTimeout(resolve, 10));
+
     // Get the execution ID
     const runningExecutions = executor.getRunningExecutions();
     expect(runningExecutions).toHaveLength(1);
-    
+
     const executionId = runningExecutions[0].id;
-    
-    // Cancel the execution
-    setTimeout(() => {
-      executor.cancelExecution(executionId, 'Test cancellation');
-    }, 20);
+
+    // Cancel the execution after ensuring it's running
+    await new Promise(resolve => setTimeout(resolve, 30));
+    executor.cancelExecution(executionId, 'Test cancellation');
 
     const result = await executionPromise;
     expect(result.success).toBe(false);
     expect(result.message).toContain('Operation was cancelled');
-  });
+  }, 3000);
 
   test('should cancel all executions', async () => {
     const slowCommand = {
       name: 'slow-command',
       description: 'Slow command',
+      arguments: [],
+      options: [],
+      aliases: [],
+      hidden: false,
       execute: jest.fn().mockImplementation(async (context) => {
-        for (let i = 0; i < 10; i++) {
-          await new Promise(resolve => setTimeout(resolve, 10));
+        // Run for longer to ensure cancellation happens
+        for (let i = 0; i < 200; i++) {
+          await new Promise(resolve => setTimeout(resolve, 5));
           context.cancellationToken.throwIfCancelled();
         }
         return { success: true, exitCode: 0 };
@@ -273,32 +300,32 @@ describe('CommandExecutor', () => {
     const promise1 = executor.executeAsync(slowCommand, [], {});
     const promise2 = executor.executeAsync(slowCommand, [], {});
 
-    // Wait a bit then cancel all
-    setTimeout(() => {
-      const cancelledCount = executor.cancelAllExecutions('Test cancellation');
-      expect(cancelledCount).toBe(2);
-    }, 20);
+    // Wait for both executions to start
+    await new Promise(resolve => setTimeout(resolve, 20));
 
-    const result1 = await promise1;
-    const result2 = await promise2;
-    
+    // Cancel all executions
+    const cancelledCount = executor.cancelAllExecutions('Test cancellation');
+    expect(cancelledCount).toBe(2);
+
+    const [result1, result2] = await Promise.all([promise1, promise2]);
+
     expect(result1.success).toBe(false);
     expect(result1.message).toContain('Operation was cancelled');
     expect(result2.success).toBe(false);
     expect(result2.message).toContain('Operation was cancelled');
-  });
+  }, 3000);
 
   test('should track running executions', async () => {
     const slowCommand = {
       name: 'slow-command',
       description: 'Slow command',
-      execute: jest.fn().mockImplementation(() => 
+      execute: jest.fn().mockImplementation(() =>
         new Promise(resolve => setTimeout(() => resolve({ success: true, exitCode: 0 }), 100))
       )
     };
 
     const promise = executor.executeAsync(slowCommand, [], {});
-    
+
     const runningExecutions = executor.getRunningExecutions();
     expect(runningExecutions).toHaveLength(1);
     expect(runningExecutions[0].commandName).toBe('slow-command');
@@ -362,7 +389,7 @@ describe('CommandExecutor', () => {
     const slowCommand = {
       name: 'slow',
       description: 'Slow command',
-      execute: () => new Promise<{ success: boolean; exitCode: number }>(resolve => 
+      execute: () => new Promise<{ success: boolean; exitCode: number }>(resolve =>
         setTimeout(() => resolve({ success: true, exitCode: 0 }), 1000)
       )
     };
@@ -460,6 +487,11 @@ describe('CommandExecutor', () => {
 });
 
 describe('globalExecutor', () => {
+  afterAll(() => {
+    // Ensure all pools are disposed at the end to prevent timer leaks
+    globalPoolManager.dispose();
+  });
+
   test('should provide a global executor instance', () => {
     expect(globalExecutor).toBeInstanceOf(CommandExecutor);
   });

@@ -240,11 +240,22 @@ export class AdvancedObjectPool<T> {
      * Consider growing the pool based on usage patterns
      */
     private considerGrowth(): void {
-        const utilizationRate = this.metrics.activeObjects / (this.pool.length + this.metrics.activeObjects);
+        // Safe utilization calculation - avoid division by zero
+        const totalObjects = this.pool.length + this.metrics.activeObjects;
+        const utilizationRate = totalObjects > 0 ? this.metrics.activeObjects / totalObjects : 0;
 
         // Grow if utilization is high and we haven't reached max size
-        if (utilizationRate > 0.8 && this.pool.length < this.config.maxSize) {
-            const growthSize = Math.ceil(this.pool.length * (this.config.growthFactor - 1));
+        // Special case: if pool is empty but we have active objects, start growing
+        const shouldGrow = (utilizationRate > 0.8 || (this.pool.length === 0 && this.metrics.activeObjects > 0))
+            && this.pool.length < this.config.maxSize;
+
+        if (shouldGrow) {
+            // Ensure minimum growth when pool is empty
+            const baseGrowthSize = this.pool.length === 0 ?
+                Math.max(this.config.minSize, Math.ceil(this.metrics.activeObjects * 0.5)) :
+                Math.ceil(this.pool.length * (this.config.growthFactor - 1));
+
+            const growthSize = Math.max(1, baseGrowthSize); // Ensure at least 1 object is added
             const targetSize = Math.min(this.pool.length + growthSize, this.config.maxSize);
 
             for (let i = this.pool.length; i < targetSize; i++) {
@@ -267,10 +278,13 @@ export class AdvancedObjectPool<T> {
      * Consider shrinking the pool to free unused memory
      */
     private considerShrink(): void {
-        const utilizationRate = this.metrics.activeObjects / (this.pool.length + this.metrics.activeObjects);
+        // Safe utilization calculation - avoid division by zero
+        const totalObjects = this.pool.length + this.metrics.activeObjects;
+        const utilizationRate = totalObjects > 0 ? this.metrics.activeObjects / totalObjects : 0;
 
         // Shrink if utilization is low and we're above min size
-        if (utilizationRate < 0.3 && this.pool.length > this.config.minSize) {
+        // Don't shrink if we have no objects in pool (prevents endless shrinking)
+        if (utilizationRate < 0.3 && this.pool.length > this.config.minSize && this.pool.length > 0) {
             const shrinkSize = Math.floor(this.pool.length * (1 - this.config.shrinkFactor));
             const targetSize = Math.max(this.pool.length - shrinkSize, this.config.minSize);
 

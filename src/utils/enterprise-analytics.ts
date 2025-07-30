@@ -439,8 +439,14 @@ export class EnterpriseAnalytics extends EventEmitter {
         let filteredData = this.dataPoints;
         
         if (metricFilter) {
-            const regex = new RegExp(metricFilter.replace(/\*/g, '.*'));
-            filteredData = this.dataPoints.filter(dp => regex.test(dp.metricName));
+            try {
+                const regex = new RegExp(metricFilter.replace(/\*/g, '.*'));
+                filteredData = this.dataPoints.filter(dp => regex.test(dp.metricName));
+            } catch (error) {
+                // If regex is invalid, return all data
+                console.warn(`[ANALYTICS] Invalid metric filter: ${metricFilter}`, error);
+                filteredData = this.dataPoints;
+            }
         }
 
         if (format === 'csv') {
