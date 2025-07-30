@@ -1,0 +1,30 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "removeComments": true,
+    "sourceMap": false,
+    "declarationMap": false,
+    // Production optimizations
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    // Advanced build optimizations
+    "importsNotUsedAsValues": "remove",
+    "preserveValueImports": false,
+    // Bundle optimization
+    "verbatimModuleSyntax": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "coverage",
+    "*.config.js",
+    "benchmarks",
+    "scripts",
+    "examples",
+    "tests"
+  ]
+}

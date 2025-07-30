@@ -18,11 +18,15 @@
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    // Performance optimizations
+    // Advanced performance optimizations
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "composite": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    "disableSourceOfProjectReferenceRedirect": true,
+    "disableReferencedProjectLoad": true,
     // Advanced features
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
