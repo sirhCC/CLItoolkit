@@ -71,7 +71,7 @@ class BuildPerformanceAnalyzer {
 
         try {
             // Run TypeScript compilation
-            const output = execSync(`npx tsc -p ${configFile}`, { 
+            const output = execSync(`npx tsc -p ${configFile}`, {
                 encoding: 'utf8',
                 stdio: 'pipe'
             });
@@ -126,9 +126,9 @@ class BuildPerformanceAnalyzer {
      */
     async measureIncrementalBuild(): Promise<number> {
         const startTime = performance.now();
-        
+
         try {
-            execSync('npx tsc -p tsconfig.build.json --incremental', { 
+            execSync('npx tsc -p tsconfig.build.json --incremental', {
                 encoding: 'utf8',
                 stdio: 'pipe'
             });
@@ -176,7 +176,7 @@ class BuildPerformanceAnalyzer {
         if (history.length >= 3) {
             const recentBuilds = history.slice(-3);
             const avgTime = recentBuilds.reduce((sum, build) => sum + build.compilationTime, 0) / 3;
-            
+
             if (avgTime > metrics.compilationTime * 1.2) {
                 recommendations.push('Build performance is degrading - consider cleaning dist folder');
             }
@@ -215,10 +215,10 @@ class BuildPerformanceAnalyzer {
      */
     generateReport(analytics: BuildAnalyticsReport): string {
         const { currentBuild, previousBuild, performance, trends } = analytics;
-        
+
         const report = [
             '📊 Build Performance Analytics Report',
-            '=' .repeat(60),
+            '='.repeat(60),
             '',
             '🏗️ Current Build Metrics:',
             `   Compilation Time: ${(currentBuild.compilationTime / 1000).toFixed(2)}s`,
@@ -245,7 +245,7 @@ class BuildPerformanceAnalyzer {
             `   Build Speed Trend: ${trends.buildSpeedTrend}`,
             `   Memory Usage Trend: ${trends.memoryTrend}`,
             '',
-            '=' .repeat(60)
+            '='.repeat(60)
         );
 
         return report.join('\n');
@@ -269,10 +269,14 @@ class BuildPerformanceAnalyzer {
         return { improvement, recommendation, optimizationScore };
     }
 
-    private analyzeTrends(history: BuildMetrics[]) {
+    private analyzeTrends(history: BuildMetrics[]): {
+        averageCompileTime: number;
+        buildSpeedTrend: 'improving' | 'degrading' | 'stable';
+        memoryTrend: 'improving' | 'degrading' | 'stable';
+    } {
         if (history.length < 3) {
             return {
-                averageCompileTime: history.length > 0 ? history[0].compilationTime : 0,
+                averageCompileTime: history.length > 0 ? history[0]!.compilationTime : 0,
                 buildSpeedTrend: 'stable' as const,
                 memoryTrend: 'stable' as const
             };
@@ -291,11 +295,13 @@ class BuildPerformanceAnalyzer {
         const firstAvgMemory = firstHalf.reduce((sum, build) => sum + build.memoryUsage, 0) / firstHalf.length;
         const secondAvgMemory = secondHalf.reduce((sum, build) => sum + build.memoryUsage, 0) / secondHalf.length;
 
-        const buildSpeedTrend = secondAvgTime < firstAvgTime * 0.9 ? 'improving' :
-                              secondAvgTime > firstAvgTime * 1.1 ? 'degrading' : 'stable';
+        const buildSpeedTrend: 'improving' | 'degrading' | 'stable' =
+            secondAvgTime < firstAvgTime * 0.9 ? 'improving' :
+                secondAvgTime > firstAvgTime * 1.1 ? 'degrading' : 'stable';
 
-        const memoryTrend = secondAvgMemory < firstAvgMemory * 0.9 ? 'improving' :
-                           secondAvgMemory > firstAvgMemory * 1.1 ? 'degrading' : 'stable';
+        const memoryTrend: 'improving' | 'degrading' | 'stable' =
+            secondAvgMemory < firstAvgMemory * 0.9 ? 'improving' :
+                secondAvgMemory > firstAvgMemory * 1.1 ? 'degrading' : 'stable';
 
         return { averageCompileTime, buildSpeedTrend, memoryTrend };
     }
@@ -368,13 +374,13 @@ export async function runBuildAnalysis(configFile?: string): Promise<void> {
 
     const metrics = await buildPerformanceAnalyzer.measureCompilation(configFile);
     const analytics = await buildPerformanceAnalyzer.analyzeBuild(metrics);
-    
+
     console.log(buildPerformanceAnalyzer.generateReport(analytics));
 
     // Generate recommendations
     const history = buildPerformanceAnalyzer['loadBuildHistory']();
     const recommendations = buildPerformanceAnalyzer.generateOptimizationRecommendations(metrics, history);
-    
+
     if (recommendations.length > 0) {
         console.log('\n💡 Optimization Recommendations:');
         recommendations.forEach((rec, index) => {
