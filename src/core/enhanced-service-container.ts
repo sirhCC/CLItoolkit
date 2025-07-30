@@ -65,32 +65,10 @@ export interface ServiceScope extends Disposable {
 /**
  * Disposable interface for cleanup
  */
-export interface Disposable {
-  dispose(): void | Promise<void>;
-}
 
 /**
  * Enhanced dependency injection container with lifecycle management
  */
-export class EnhancedServiceContainer {
-  private registrations = new Map<string, ServiceRegistration>();
-  private singletonInstances = new Map<string, unknown>();
-  private scopedInstances = new Map<string, Map<string, unknown>>();
-  private currentScopeId: string | null = null;
-  private scopeCounter = 0;
-  private dependencyGraph = new Map<string, Set<string>>();
-
-  /**
-   * Register a service with the container
-   */
-  register<T>(registration: ServiceRegistration<T>): this {
-    // Check for circular dependencies (this also updates the dependency graph)
-    this.validateDependencies(registration);
-    
-    this.registrations.set(registration.token.id, registration);
-    
-    return this;
-  }
 
   /**
    * Register a transient service
@@ -610,32 +588,8 @@ export function Injectable<T>(token?: ServiceToken<T>) {
  */
 
 // Logger service interface
-export interface ILogger {
-  debug(message: string, ...args: unknown[]): void;
-  info(message: string, ...args: unknown[]): void;
-  warn(message: string, ...args: unknown[]): void;
-  error(message: string, ...args: unknown[]): void;
-}
-
-export const LoggerToken = createServiceToken<ILogger>('ILogger', 'Application logger service');
 
 // File system service interface
-export interface IFileSystem {
-  readFile(path: string): Promise<string>;
-  writeFile(path: string, content: string): Promise<void>;
-  exists(path: string): Promise<boolean>;
-  mkdir(path: string): Promise<void>;
-  readDir(path: string): Promise<string[]>;
-}
-
-export const FileSystemToken = createServiceToken<IFileSystem>('IFileSystem', 'File system service');
 
 // HTTP client service interface
-export interface IHttpClient {
-  get<T>(url: string): Promise<T>;
-  post<T>(url: string, data: unknown): Promise<T>;
-  put<T>(url: string, data: unknown): Promise<T>;
-  delete<T>(url: string): Promise<T>;
-}
 
-export const HttpClientToken = createServiceToken<IHttpClient>('IHttpClient', 'HTTP client service');

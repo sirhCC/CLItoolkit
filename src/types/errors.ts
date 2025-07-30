@@ -94,15 +94,6 @@ import type { ICliConfig } from './config';
 /**
  * CLI framework events
  */
-export interface ICliEvents {
-  'command:before': [ICommandContext];
-  'command:after': [ICommandContext, ICommandResult];
-  'command:error': [ICommandContext, Error];
-  'config:loaded': [ICliConfig];
-  'plugin:loaded': [string];
-  'plugin:error': [string, Error];
-  'validation:error': [ValidationError];
-}
 
 /**
  * Event listener type

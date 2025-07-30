@@ -7,16 +7,6 @@ import { z } from 'zod';
 /**
  * Schema validation configuration
  */
-export interface IValidationConfig {
-  /** Enable strict mode for validation */
-  strict: boolean;
-  /** Allow unknown properties */
-  allowUnknown: boolean;
-  /** Strip unknown properties */
-  stripUnknown: boolean;
-  /** Convert types when possible */
-  coerce: boolean;
-}
 
 /**
  * Validation result for parsed arguments

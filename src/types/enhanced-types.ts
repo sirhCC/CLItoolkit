@@ -3,9 +3,6 @@
  */
 
 // Branded types for type safety
-export type CommandName = string & { readonly brand: unique symbol };
-export type OptionName = string & { readonly brand: unique symbol };
-export type ArgName = string & { readonly brand: unique symbol };
 
 // Template literal types for command paths
 export type CommandPath<T extends string = string> = T extends `${infer Parent}:${infer Child}`
@@ -26,7 +23,7 @@ export function createArgName(value: string): ArgName {
 }
 
 // Advanced option type with discriminated unions
-export type OptionType = 
+
   | { type: 'string'; value: string; choices?: readonly string[] }
   | { type: 'number'; value: number; min?: number; max?: number }
   | { type: 'boolean'; value: boolean }
@@ -111,12 +108,7 @@ type ArgumentTypeFromValue<T> =
 type OptionTypeFromValue<T> = ArgumentTypeFromValue<T>;
 
 // Command metadata with rich information
-export interface CommandMetadata {
-  readonly examples?: readonly {
-    readonly command: string;
-    readonly description: string;
-    readonly output?: string;
-  }[];
+[];
   readonly author?: string;
   readonly license?: string;
   readonly homepage?: string;

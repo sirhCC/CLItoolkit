@@ -62,9 +62,7 @@ export class LazyLoader<T> {
 /**
  * Advanced command registry with lazy loading
  */
-export class LazyCommandRegistry {
-  private readonly commands = new Map<string, LazyLoader<any>>();
-  private readonly metadata = new Map<string, { name: string; description: string; }>();
+>();
 
   /**
    * Register command with lazy loading

@@ -186,21 +186,7 @@ interface ParseResultPooled {
 }
 
 // ⚡ ENTERPRISE ZERO-COPY ARGUMENT PARSER
-export class ZeroCopyArgumentParser {
-    private static readonly resultPool = new EnhancedParsingPool<ParseResultPooled>(
-        () => ({
-            command: '',
-            args: [],
-            options: new Map(),
-            positional: [],
-            errors: [],
-            reset() {
-                this.command = '';
-                this.args.length = 0;
-                this.options.clear();
-                this.positional.length = 0;
-                this.errors.length = 0;
-            }
+
         }),
         (obj: ParseResultPooled) => obj.reset()
     );
@@ -626,21 +612,7 @@ export class ZeroCopyArgumentParser {
 }
 
 // Usage example with monitoring
-export class OptimizedCliFramework {
-    private readonly parser = new ZeroCopyArgumentParser();
-
-    parseArguments(argv: string[]) {
-        const start = performance.now();
-        const result = this.parser.parseSync(argv);
-
-        try {
-            // Process result...
-            const processed = {
-                command: result.command,
-                options: Object.fromEntries(result.options),
-                positional: [...result.positional],
-                errors: [...result.errors]
-            };
+;
 
             const duration = performance.now() - start;
             if (duration > 10) {
