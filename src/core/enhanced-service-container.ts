@@ -41,7 +41,7 @@ export interface ServiceToken<T = any> {
 /**
  * Service implementation types
  */
-export type ServiceImplementation<T> = 
+export type ServiceImplementation<T> =
   | ServiceConstructor<T>
   | ServiceFactory<T>
   | T; // Direct instance
@@ -65,10 +65,30 @@ export interface ServiceScope extends Disposable {
 /**
  * Disposable interface for cleanup
  */
+export interface Disposable {
+  dispose(): Promise<void> | void;
+}
 
 /**
  * Enhanced dependency injection container with lifecycle management
  */
+export class EnhancedServiceContainer {
+  private readonly registrations = new Map<string, ServiceRegistration>();
+  private readonly singletonInstances = new Map<string, any>();
+  private readonly dependencyGraph = new Map<string, Set<string>>();
+  private readonly scopes = new WeakMap<object, ServiceScope>();
+  private readonly scopedInstances = new Map<string, Map<string, any>>();
+  private scopeCounter = 0;
+  private currentScopeId: string | undefined;
+
+  /**
+   * Core registration method
+   */
+  register<T>(registration: ServiceRegistration<T>): this {
+    this.validateDependencies(registration);
+    this.registrations.set(registration.token.id, registration);
+    return this;
+  }
 
   /**
    * Register a transient service
@@ -244,7 +264,7 @@ export interface ServiceScope extends Disposable {
       if (visited.has(tokenId)) return;
 
       visiting.add(tokenId);
-      
+
       const deps = this.dependencyGraph.get(tokenId);
       if (deps) {
         for (const depId of deps) {
@@ -265,7 +285,7 @@ export interface ServiceScope extends Disposable {
    */
   private updateDependencyGraph<T>(registration: ServiceRegistration<T>): void {
     const deps = new Set<string>();
-    
+
     if (registration.dependencies) {
       for (const dep of registration.dependencies) {
         deps.add(dep.id);
@@ -459,7 +479,7 @@ export interface ServiceScope extends Disposable {
    */
   private async resolveDependencies(dependencies: ServiceToken<any>[]): Promise<any[]> {
     const resolved: any[] = [];
-    
+
     for (const dep of dependencies) {
       resolved.push(await this.get(dep));
     }
@@ -510,7 +530,7 @@ export interface ServiceScope extends Disposable {
    * Set current scope for scoped service resolution
    */
   private setCurrentScope(scopeId: string | null): void {
-    this.currentScopeId = scopeId;
+    this.currentScopeId = scopeId || undefined;
   }
 
   /**
@@ -534,12 +554,12 @@ class ServiceScopeImpl implements ServiceScope {
   constructor(
     private container: EnhancedServiceContainer,
     private scopeId: string
-  ) {}
+  ) { }
 
   async get<T>(token: ServiceToken<T>): Promise<T> {
     const previousScope = (this.container as any).currentScopeId;
     (this.container as any).setCurrentScope(this.scopeId);
-    
+
     try {
       return await this.container.get(token);
     } finally {
