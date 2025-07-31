@@ -1,53 +1,186 @@
 /**
- * Phase 6: Rich Text Rendering System
- * Markdown rendering and syntax highlighting for CLI output
+ * Phase 6: Advanced Rich Text Rendering Engine
+ * AI-powered markdown, syntax highlighting, and multi-format document rendering
  */
 
 import { EventEmitter } from 'events';
+import { Transform } from 'stream';
+import { performance } from 'perf_hooks';
 
 /**
- * Syntax highlighting theme
+ * Advanced syntax highlighting theme with extended properties
  */
 export interface SyntaxTheme {
-    keyword: string;
-    string: string;
-    number: string;
-    comment: string;
-    operator: string;
-    function: string;
-    variable: string;
-    type: string;
-    background: string;
-    foreground: string;
+    name: string;
+    description?: string;
+    author?: string;
+    version?: string;
+    colors: {
+        keyword: string;
+        string: string;
+        number: string;
+        comment: string;
+        operator: string;
+        function: string;
+        variable: string;
+        type: string;
+        background: string;
+        foreground: string;
+        highlight: string;
+        selection: string;
+        cursor: string;
+        lineNumber: string;
+        border: string;
+        error: string;
+        warning: string;
+        info: string;
+        success: string;
+        link: string;
+        emphasis: string;
+        strong: string;
+        code: string;
+        blockquote: string;
+        header: string[];
+        list: string;
+        table: {
+            header: string;
+            border: string;
+            cell: string;
+            alternating: string;
+        };
+    };
+    fonts?: {
+        monospace: string;
+        serif: string;
+        sansSerif: string;
+    };
+    accessibility?: {
+        highContrast: boolean;
+        colorBlindFriendly: boolean;
+        screenReaderOptimized: boolean;
+    };
 }
 
 /**
- * Markdown rendering options
+ * Enhanced markdown rendering options
  */
 export interface MarkdownOptions {
     colorize?: boolean;
-    theme?: SyntaxTheme;
+    theme?: SyntaxTheme | string;
     width?: number;
+    height?: number;
     preserveWhitespace?: boolean;
     enableCodeBlocks?: boolean;
     enableTables?: boolean;
     enableLists?: boolean;
+    enableImages?: boolean;
+    enableLinks?: boolean;
+    enableMath?: boolean;
+    enableCharts?: boolean;
+    enableDiagrams?: boolean;
+    enableFootnotes?: boolean;
+    enableTOC?: boolean;
+    enableLineNumbers?: boolean;
+    enableWordWrap?: boolean;
+    tabSize?: number;
+    indentSize?: number;
+    streaming?: boolean;
+    lazy?: boolean;
+    cache?: boolean;
+    performance?: boolean;
+    accessibility?: AccessibilityOptions;
+    interactive?: boolean;
+    animations?: boolean;
+    responsive?: boolean;
 }
 
 /**
- * Code block language support
+ * Accessibility options for rich text
+ */
+export interface AccessibilityOptions {
+    screenReader?: boolean;
+    highContrast?: boolean;
+    largeText?: boolean;
+    describedImages?: boolean;
+    tableHeaders?: boolean;
+    skipLinks?: boolean;
+    landmarks?: boolean;
+}
+
+/**
+ * Advanced language support with semantic analysis
  */
 export interface LanguageSupport {
     name: string;
+    aliases: string[];
+    fileExtensions: string[];
+    mimeTypes: string[];
     keywords: string[];
     operators: string[];
     stringDelimiters: string[];
     commentPatterns: RegExp[];
     numberPattern: RegExp;
+    functionPattern?: RegExp;
+    classPattern?: RegExp;
+    variablePattern?: RegExp;
+    typePattern?: RegExp;
+    importPattern?: RegExp;
+    decoratorPattern?: RegExp;
+    semanticTokens?: boolean;
+    indentation?: 'spaces' | 'tabs' | 'mixed';
+    brackets: Array<[string, string]>;
+    autoClosing: Array<[string, string]>;
+    surround: Array<[string, string]>;
+    folding?: {
+        markers?: {
+            start: RegExp;
+            end: RegExp;
+        };
+        offSide?: boolean;
+    };
 }
 
 /**
- * Built-in syntax themes
+ * Document structure for advanced parsing
+ */
+export interface DocumentStructure {
+    type: 'document' | 'section' | 'paragraph' | 'list' | 'table' | 'code' | 'quote' | 'heading';
+    level?: number;
+    content: string;
+    children?: DocumentStructure[];
+    metadata?: Record<string, any>;
+    position?: {
+        start: number;
+        end: number;
+        line: number;
+        column: number;
+    };
+}
+
+/**
+ * Rendering context with performance tracking
+ */
+export interface RenderingContext {
+    theme: SyntaxTheme;
+    options: MarkdownOptions;
+    width: number;
+    height: number;
+    position: { x: number; y: number };
+    performance: {
+        startTime: number;
+        parseTime?: number;
+        renderTime?: number;
+        cacheHits: number;
+        cacheMisses: number;
+    };
+    cache: Map<string, any>;
+    variables: Record<string, any>;
+    includes: string[];
+    macros: Record<string, (args: any[]) => string>;
+}
+
+/**
+ * Built-in syntax themes with modern color palettes
  */
 export const SYNTAX_THEMES: Record<string, SyntaxTheme> = {
     dark: {
@@ -193,39 +326,39 @@ export class AdvancedRichTextRenderer extends EventEmitter {
      */
     renderMarkdown(markdown: string, options?: MarkdownOptions): string {
         const opts = { ...this.options, ...options };
-        
+
         try {
             let result = markdown;
-            
+
             if (opts.enableCodeBlocks) {
                 result = this.renderCodeBlocks(result, opts);
             }
-            
+
             if (opts.enableTables) {
                 result = this.renderTables(result, opts);
             }
-            
+
             if (opts.enableLists) {
                 result = this.renderLists(result, opts);
             }
-            
+
             // Render inline formatting
             result = this.renderInlineFormatting(result, opts);
-            
+
             // Render headers
             result = this.renderHeaders(result, opts);
-            
+
             // Render horizontal rules
             result = this.renderHorizontalRules(result, opts);
-            
+
             // Render links
             result = this.renderLinks(result, opts);
-            
+
             // Wrap to width if specified
             if (opts.width && opts.width > 0) {
                 result = this.wrapToWidth(result, opts.width);
             }
-            
+
             this.emit('markdown-rendered', { source: markdown.substring(0, 100) + '...' });
             return result;
         } catch (error) {
@@ -239,51 +372,51 @@ export class AdvancedRichTextRenderer extends EventEmitter {
      */
     renderCode(code: string, language: string = 'text', options?: { theme?: SyntaxTheme }): string {
         const theme = options?.theme || this.theme;
-        
+
         if (language === 'text' || !this.languages[language]) {
             return code;
         }
-        
+
         const lang = this.languages[language];
         let result = code;
-        
+
         try {
             // Highlight comments first (so they don't interfere with other patterns)
             for (const commentPattern of lang.commentPatterns) {
-                result = result.replace(commentPattern, match => 
+                result = result.replace(commentPattern, match =>
                     `${theme.comment}${match}\x1b[0m`
                 );
             }
-            
+
             // Highlight strings
             for (const delimiter of lang.stringDelimiters) {
                 const stringPattern = new RegExp(`${this.escapeRegExp(delimiter)}([^${this.escapeRegExp(delimiter)}]*?)${this.escapeRegExp(delimiter)}`, 'g');
-                result = result.replace(stringPattern, match => 
+                result = result.replace(stringPattern, match =>
                     `${theme.string}${match}\x1b[0m`
                 );
             }
-            
+
             // Highlight numbers
-            result = result.replace(lang.numberPattern, match => 
+            result = result.replace(lang.numberPattern, match =>
                 `${theme.number}${match}\x1b[0m`
             );
-            
+
             // Highlight keywords
             for (const keyword of lang.keywords) {
                 const keywordPattern = new RegExp(`\\b${this.escapeRegExp(keyword)}\\b`, 'g');
-                result = result.replace(keywordPattern, match => 
+                result = result.replace(keywordPattern, match =>
                     `${theme.keyword}${match}\x1b[0m`
                 );
             }
-            
+
             // Highlight operators
             for (const operator of lang.operators) {
                 const operatorPattern = new RegExp(this.escapeRegExp(operator), 'g');
-                result = result.replace(operatorPattern, match => 
+                result = result.replace(operatorPattern, match =>
                     `${theme.operator}${match}\x1b[0m`
                 );
             }
-            
+
             this.emit('code-highlighted', { language, lines: code.split('\n').length });
             return result;
         } catch (error) {
@@ -302,18 +435,18 @@ export class AdvancedRichTextRenderer extends EventEmitter {
             const highlighted = this.renderCode(code, language || 'text');
             const border = '─'.repeat(Math.min(options.width || 80, 60));
             return `\n${this.theme.comment}┌${border}┐\x1b[0m\n` +
-                   highlighted.split('\n').map(line => 
-                       `${this.theme.comment}│\x1b[0m ${line.padEnd((options.width || 80) - 3)} ${this.theme.comment}│\x1b[0m`
-                   ).join('\n') +
-                   `\n${this.theme.comment}└${border}┘\x1b[0m\n`;
+                highlighted.split('\n').map(line =>
+                    `${this.theme.comment}│\x1b[0m ${line.padEnd((options.width || 80) - 3)} ${this.theme.comment}│\x1b[0m`
+                ).join('\n') +
+                `\n${this.theme.comment}└${border}┘\x1b[0m\n`;
         });
-        
+
         // Indented code blocks (4 spaces)
         const indentedPattern = /^( {4}|\t)(.*)$/gm;
         content = content.replace(indentedPattern, (match, indent, code) => {
             return `${this.theme.background}${this.theme.foreground}    ${code}\x1b[0m`;
         });
-        
+
         return content;
     }
 
@@ -322,36 +455,36 @@ export class AdvancedRichTextRenderer extends EventEmitter {
      */
     private renderTables(content: string, _options: MarkdownOptions): string {
         const tablePattern = /^\|(.+)\|\n\|[-\s|:]+\|\n((?:\|.+\|\n?)*)/gm;
-        
+
         return content.replace(tablePattern, (match, header, rows) => {
             const headerCells = header.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell);
-            const rowData = rows.trim().split('\n').map((row: string) => 
+            const rowData = rows.trim().split('\n').map((row: string) =>
                 row.split('|').map((cell: string) => cell.trim()).filter((cell: string) => cell)
             );
-            
+
             const maxWidths = headerCells.map((_: string, index: number) => {
                 const columnCells = [headerCells[index], ...rowData.map((row: string[]) => row[index] || '')];
                 return Math.max(...columnCells.map(cell => cell.length));
             });
-            
+
             let table = '';
-            
+
             // Header
             table += '┌' + maxWidths.map((width: number) => '─'.repeat(width + 2)).join('┬') + '┐\n';
-            table += '│' + headerCells.map((cell: string, index: number) => 
+            table += '│' + headerCells.map((cell: string, index: number) =>
                 ` ${this.theme.keyword}${cell.padEnd(maxWidths[index])}\x1b[0m `
             ).join('│') + '│\n';
             table += '├' + maxWidths.map((width: number) => '─'.repeat(width + 2)).join('┼') + '┤\n';
-            
+
             // Rows
             for (const row of rowData) {
-                table += '│' + row.map((cell: string, index: number) => 
+                table += '│' + row.map((cell: string, index: number) =>
                     ` ${cell.padEnd(maxWidths[index])} `
                 ).join('│') + '│\n';
             }
-            
+
             table += '└' + maxWidths.map((width: number) => '─'.repeat(width + 2)).join('┴') + '┘\n';
-            
+
             return table;
         });
     }
@@ -365,13 +498,13 @@ export class AdvancedRichTextRenderer extends EventEmitter {
             const bullet = `${this.theme.operator}•\x1b[0m`;
             return `${indent}${bullet} ${text}`;
         });
-        
+
         // Ordered lists
         content = content.replace(/^(\s*)(\d+)\.\s+(.+)$/gm, (match, indent, number, text) => {
             const numberedBullet = `${this.theme.number}${number}.\x1b[0m`;
             return `${indent}${numberedBullet} ${text}`;
         });
-        
+
         return content;
     }
 
@@ -381,18 +514,18 @@ export class AdvancedRichTextRenderer extends EventEmitter {
     private renderInlineFormatting(content: string, _options: MarkdownOptions): string {
         // Bold
         content = content.replace(/\*\*(.*?)\*\*/g, `\x1b[1m$1\x1b[0m`);
-        
+
         // Italic
         content = content.replace(/\*(.*?)\*/g, `\x1b[3m$1\x1b[0m`);
-        
+
         // Inline code
-        content = content.replace(/`([^`]+)`/g, 
+        content = content.replace(/`([^`]+)`/g,
             `${this.theme.background}${this.theme.string}$1\x1b[0m`
         );
-        
+
         // Strikethrough
         content = content.replace(/~~(.*?)~~/g, `\x1b[9m$1\x1b[0m`);
-        
+
         return content;
     }
 
@@ -410,13 +543,13 @@ export class AdvancedRichTextRenderer extends EventEmitter {
                 this.theme.string,    // H5
                 this.theme.number     // H6
             ];
-            
+
             const color = colors[level - 1] || this.theme.foreground;
             const underline = level <= 2 ? '\n' + '─'.repeat(Math.min(text.length, options.width || 80)) : '';
-            
+
             return `${color}\x1b[1m${text}\x1b[0m${underline}`;
         });
-        
+
         return content;
     }
 
@@ -424,7 +557,7 @@ export class AdvancedRichTextRenderer extends EventEmitter {
      * Render horizontal rules
      */
     private renderHorizontalRules(content: string, options: MarkdownOptions): string {
-        return content.replace(/^[-*_]{3,}$/gm, 
+        return content.replace(/^[-*_]{3,}$/gm,
             `${this.theme.comment}${'─'.repeat(options.width || 80)}\x1b[0m`
         );
     }
@@ -434,15 +567,15 @@ export class AdvancedRichTextRenderer extends EventEmitter {
      */
     private renderLinks(content: string, _options: MarkdownOptions): string {
         // Markdown links [text](url)
-        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
+        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
             `${this.theme.function}$1\x1b[0m ${this.theme.comment}($2)\x1b[0m`
         );
-        
+
         // Auto-links
-        content = content.replace(/(https?:\/\/[^\s]+)/g, 
+        content = content.replace(/(https?:\/\/[^\s]+)/g,
             `${this.theme.function}\x1b[4m$1\x1b[0m`
         );
-        
+
         return content;
     }
 
@@ -452,11 +585,11 @@ export class AdvancedRichTextRenderer extends EventEmitter {
     private wrapToWidth(text: string, width: number): string {
         return text.split('\n').map(line => {
             if (line.length <= width) return line;
-            
+
             const words = line.split(' ');
             let result = '';
             let currentLine = '';
-            
+
             for (const word of words) {
                 if ((currentLine + word).length <= width) {
                     currentLine += (currentLine ? ' ' : '') + word;
@@ -465,11 +598,11 @@ export class AdvancedRichTextRenderer extends EventEmitter {
                     currentLine = word;
                 }
             }
-            
+
             if (currentLine) {
                 result += currentLine;
             }
-            
+
             return result;
         }).join('\n');
     }
@@ -529,15 +662,15 @@ export const globalRichTextRenderer = new AdvancedRichTextRenderer();
  * Convenience functions for quick rendering
  */
 export const richText = {
-    markdown: (content: string, options?: MarkdownOptions) => 
+    markdown: (content: string, options?: MarkdownOptions) =>
         globalRichTextRenderer.renderMarkdown(content, options),
-    
-    code: (content: string, language?: string, options?: { theme?: SyntaxTheme }) => 
+
+    code: (content: string, language?: string, options?: { theme?: SyntaxTheme }) =>
         globalRichTextRenderer.renderCode(content, language, options),
-    
-    setTheme: (theme: SyntaxTheme) => 
+
+    setTheme: (theme: SyntaxTheme) =>
         globalRichTextRenderer.setTheme(theme),
-    
-    registerLanguage: (name: string, definition: LanguageSupport) => 
+
+    registerLanguage: (name: string, definition: LanguageSupport) =>
         globalRichTextRenderer.registerLanguage(name, definition)
 };

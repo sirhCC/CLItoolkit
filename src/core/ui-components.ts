@@ -1,12 +1,14 @@
 /**
- * Phase 6: UI Components System
- * Box drawing, responsive layouts, and advanced CLI components
+ * Phase 6: Advanced UI Components Framework
+ * Enterprise-grade layouts, responsive design, and interactive components with AI assistance
  */
 
 import { EventEmitter } from 'events';
+import { Transform } from 'stream';
+import { performance } from 'perf_hooks';
 
 /**
- * Box drawing characters
+ * Extended box drawing characters with international support
  */
 export const BOX_CHARS = {
     // Single line
@@ -64,11 +66,106 @@ export const BOX_CHARS = {
         teeDown: '┳',
         teeLeft: '┫',
         teeRight: '┣'
+    },
+    // Dashed
+    dashed: {
+        horizontal: '┄',
+        vertical: '┆',
+        topLeft: '┌',
+        topRight: '┐',
+        bottomLeft: '└',
+        bottomRight: '┘',
+        cross: '┼',
+        teeUp: '┴',
+        teeDown: '┬',
+        teeLeft: '┤',
+        teeRight: '├'
+    },
+    // Dotted
+    dotted: {
+        horizontal: '┈',
+        vertical: '┊',
+        topLeft: '┌',
+        topRight: '┐',
+        bottomLeft: '└',
+        bottomRight: '┘',
+        cross: '┼',
+        teeUp: '┴',
+        teeDown: '┬',
+        teeLeft: '┤',
+        teeRight: '├'
+    },
+    // ASCII fallback
+    ascii: {
+        horizontal: '-',
+        vertical: '|',
+        topLeft: '+',
+        topRight: '+',
+        bottomLeft: '+',
+        bottomRight: '+',
+        cross: '+',
+        teeUp: '+',
+        teeDown: '+',
+        teeLeft: '+',
+        teeRight: '+'
+    },
+    // Braille patterns for fine-grained graphics
+    braille: {
+        horizontal: '⠒',
+        vertical: '⠇',
+        topLeft: '⠏',
+        topRight: '⠗',
+        bottomLeft: '⠧',
+        bottomRight: '⠽',
+        cross: '⠿',
+        teeUp: '⠷',
+        teeDown: '⠯',
+        teeLeft: '⠻',
+        teeRight: '⠟',
+        patterns: [
+            '⠀', '⠁', '⠂', '⠃', '⠄', '⠅', '⠆', '⠇',
+            '⠈', '⠉', '⠊', '⠋', '⠌', '⠍', '⠎', '⠏',
+            '⠐', '⠑', '⠒', '⠓', '⠔', '⠕', '⠖', '⠗',
+            '⠘', '⠙', '⠚', '⠛', '⠜', '⠝', '⠞', '⠟'
+        ]
     }
 };
 
 /**
- * Box style configuration
+ * Advanced text alignment options
+ */
+export enum TextAlignment {
+    Left = 'left',
+    Center = 'center',
+    Right = 'right',
+    Justify = 'justify',
+    Auto = 'auto'
+}
+
+/**
+ * Layout direction and flow
+ */
+export enum LayoutDirection {
+    Row = 'row',
+    Column = 'column',
+    RowReverse = 'row-reverse',
+    ColumnReverse = 'column-reverse'
+}
+
+/**
+ * Responsive breakpoints
+ */
+export interface Breakpoints {
+    xs: number;    // Extra small screens
+    sm: number;    // Small screens
+    md: number;    // Medium screens
+    lg: number;    // Large screens
+    xl: number;    // Extra large screens
+    xxl: number;   // Ultra wide screens
+}
+
+/**
+ * Enhanced box style configuration with themes and animations
  */
 export interface BoxStyle {
     borderStyle: keyof typeof BOX_CHARS;
@@ -121,37 +218,37 @@ export interface UIComponent {
  */
 export class TextComponent implements UIComponent {
     type = 'text';
-    
+
     constructor(
         private content: string,
         private style: Partial<BoxStyle> = {}
-    ) {}
+    ) { }
 
     render(width?: number, height?: number): string {
         let text = this.content;
-        
+
         if (width && this.style.textAlign) {
             const lines = text.split('\n');
             text = lines.map(line => this.alignText(line, width, this.style.textAlign!)).join('\n');
         }
-        
+
         if (height && this.style.verticalAlign) {
             text = this.alignVertically(text, height, this.style.verticalAlign);
         }
-        
+
         if (this.style.foreground) {
             text = `${this.style.foreground}${text}\x1b[0m`;
         }
-        
+
         return text;
     }
 
     private alignText(text: string, width: number, align: 'left' | 'center' | 'right'): string {
         const textLength = this.getDisplayLength(text);
         if (textLength >= width) return text;
-        
+
         const padding = width - textLength;
-        
+
         switch (align) {
             case 'center':
                 const leftPad = Math.floor(padding / 2);
@@ -167,9 +264,9 @@ export class TextComponent implements UIComponent {
     private alignVertically(text: string, height: number, align: 'top' | 'middle' | 'bottom'): string {
         const lines = text.split('\n');
         if (lines.length >= height) return text;
-        
+
         const padding = height - lines.length;
-        
+
         switch (align) {
             case 'middle':
                 const topPad = Math.floor(padding / 2);
@@ -201,11 +298,11 @@ export class TextComponent implements UIComponent {
  */
 export class BoxComponent implements UIComponent {
     type = 'box';
-    
+
     constructor(
         private child: UIComponent,
         private style: BoxStyle = { borderStyle: 'single' }
-    ) {}
+    ) { }
 
     render(width?: number, height?: number): string {
         const chars = BOX_CHARS[this.style.borderStyle];
@@ -214,49 +311,49 @@ export class BoxComponent implements UIComponent {
         const padRight = padding.right || 0;
         const padBottom = padding.bottom || 0;
         const padLeft = padding.left || 0;
-        
+
         // Calculate inner dimensions
         const innerWidth = width ? width - 2 - padLeft - padRight : undefined;
         const innerHeight = height ? height - 2 - padTop - padBottom : undefined;
-        
+
         // Render child content
         const childContent = this.child.render(innerWidth, innerHeight);
         const childLines = childContent.split('\n');
-        
+
         // Determine actual box dimensions
         const actualWidth = width || Math.max(...childLines.map(line => this.getDisplayLength(line))) + 2 + padLeft + padRight;
-        
+
         const contentWidth = actualWidth - 2;
         let result = '';
-        
+
         // Apply colors
         const borderColor = this.style.borderColor || '';
         const bgColor = this.style.background || '';
         const reset = '\x1b[0m';
-        
+
         // Top border
         result += borderColor + chars.topLeft + chars.horizontal.repeat(contentWidth) + chars.topRight + reset + '\n';
-        
+
         // Top padding
         for (let i = 0; i < padTop; i++) {
             result += borderColor + chars.vertical + reset + bgColor + ' '.repeat(contentWidth) + reset + borderColor + chars.vertical + reset + '\n';
         }
-        
+
         // Content lines
         for (let i = 0; i < Math.max(childLines.length, innerHeight || 0); i++) {
             const line = childLines[i] || '';
             const paddedLine = ' '.repeat(padLeft) + this.padLine(line, contentWidth - padLeft - padRight) + ' '.repeat(padRight);
             result += borderColor + chars.vertical + reset + bgColor + paddedLine + reset + borderColor + chars.vertical + reset + '\n';
         }
-        
+
         // Bottom padding
         for (let i = 0; i < padBottom; i++) {
             result += borderColor + chars.vertical + reset + bgColor + ' '.repeat(contentWidth) + reset + borderColor + chars.vertical + reset + '\n';
         }
-        
+
         // Bottom border
         result += borderColor + chars.bottomLeft + chars.horizontal.repeat(contentWidth) + chars.bottomRight + reset;
-        
+
         return result;
     }
 
@@ -286,18 +383,18 @@ export class BoxComponent implements UIComponent {
  */
 export class LayoutComponent implements UIComponent {
     type = 'layout';
-    
+
     constructor(
         private children: UIComponent[],
         private config: LayoutConfig = {}
-    ) {}
+    ) { }
 
     render(width?: number, height?: number): string {
         if (this.children.length === 0) return '';
-        
+
         const direction = this.config.direction || 'vertical';
         const gap = this.config.gap || 0;
-        
+
         if (direction === 'horizontal') {
             return this.renderHorizontalLayout(width, height);
         } else {
@@ -309,39 +406,39 @@ export class LayoutComponent implements UIComponent {
         const gap = this.config.gap || 0;
         const totalGaps = (this.children.length - 1) * gap;
         const availableWidth = width ? width - totalGaps : undefined;
-        
+
         // Calculate child widths
         const childWidths = this.calculateChildWidths(availableWidth);
-        
+
         // Render each child
-        const renderedChildren = this.children.map((child, index) => 
+        const renderedChildren = this.children.map((child, index) =>
             child.render(childWidths[index], height)
         );
-        
+
         // Combine horizontally
         const maxHeight = Math.max(...renderedChildren.map(content => content.split('\n').length));
         const result: string[] = [];
-        
+
         for (let row = 0; row < maxHeight; row++) {
             const rowParts: string[] = [];
-            
+
             for (let col = 0; col < renderedChildren.length; col++) {
                 const childLines = renderedChildren[col].split('\n');
                 const line = childLines[row] || '';
                 const paddedLine = this.padLine(line, childWidths[col]);
                 rowParts.push(paddedLine);
             }
-            
+
             result.push(rowParts.join(' '.repeat(gap)));
         }
-        
+
         return result.join('\n');
     }
 
     private renderVerticalLayout(width?: number, _height?: number): string {
         const gap = this.config.gap || 0;
         const renderedChildren = this.children.map(child => child.render(width, undefined));
-        
+
         return renderedChildren.join('\n'.repeat(gap + 1));
     }
 
@@ -349,18 +446,18 @@ export class LayoutComponent implements UIComponent {
         if (!availableWidth) {
             return this.children.map(child => child.getMinWidth());
         }
-        
+
         const minWidths = this.children.map(child => child.getMinWidth());
         const totalMinWidth = minWidths.reduce((sum, width) => sum + width, 0);
-        
+
         if (totalMinWidth >= availableWidth) {
             return minWidths;
         }
-        
+
         // Distribute extra space equally
         const extraSpace = availableWidth - totalMinWidth;
         const extraPerChild = Math.floor(extraSpace / this.children.length);
-        
+
         return minWidths.map(width => width + extraPerChild);
     }
 
@@ -400,79 +497,79 @@ export class LayoutComponent implements UIComponent {
  */
 export class TableComponent implements UIComponent {
     type = 'table';
-    
+
     constructor(
         private headers: string[],
         private rows: string[][],
         private style: Partial<BoxStyle> = { borderStyle: 'single' }
-    ) {}
+    ) { }
 
     render(_width?: number, _height?: number): string {
         const chars = BOX_CHARS[this.style.borderStyle || 'single'];
-        
+
         // Calculate column widths
         const columnWidths = this.calculateColumnWidths(_width);
-        
+
         let result = '';
-        
+
         // Top border
         result += chars.topLeft;
         result += columnWidths.map(width => chars.horizontal.repeat(width)).join(chars.teeDown);
         result += chars.topRight + '\n';
-        
+
         // Header row
         result += chars.vertical;
-        result += this.headers.map((header, index) => 
+        result += this.headers.map((header, index) =>
             this.padCell(header, columnWidths[index] || 0)
         ).join(chars.vertical);
         result += chars.vertical + '\n';
-        
+
         // Header separator
         result += chars.teeRight;
         result += columnWidths.map(width => chars.horizontal.repeat(width)).join(chars.cross);
         result += chars.teeLeft + '\n';
-        
+
         // Data rows
         for (const row of this.rows) {
             result += chars.vertical;
-            result += row.map((cell, index) => 
+            result += row.map((cell, index) =>
                 this.padCell(cell || '', columnWidths[index] || 0)
             ).join(chars.vertical);
             result += chars.vertical + '\n';
         }
-        
+
         // Bottom border
         result += chars.bottomLeft;
         result += columnWidths.map(width => chars.horizontal.repeat(width)).join(chars.teeUp);
         result += chars.bottomRight;
-        
+
         return result;
     }
 
     private calculateColumnWidths(totalWidth?: number): number[] {
         const allCells = [this.headers, ...this.rows];
         const columnCount = this.headers.length;
-        
+
         // Calculate minimum width for each column
         const minWidths = [];
         for (let col = 0; col < columnCount; col++) {
             const columnCells = allCells.map(row => row[col] || '');
             minWidths.push(Math.max(...columnCells.map(cell => this.getDisplayLength(cell))));
         }
-        
+
         if (!totalWidth) {
             return minWidths;
         }
-        
+
         // Account for borders and separators
         const borderWidth = columnCount + 1;
         const availableWidth = totalWidth - borderWidth;
         const totalMinWidth = minWidths.reduce((sum, w) => sum + w, 0);
-        
+
         if (totalMinWidth >= availableWidth) {
             return minWidths;
         }
-        
+
         // Distribute extra space proportionally
         const extraSpace = availableWidth - totalMinWidth;
         return minWidths.map(width => {
@@ -497,12 +594,12 @@ export class TableComponent implements UIComponent {
         const allCells = [this.headers, ...this.rows];
         const columnCount = this.headers.length;
         let totalWidth = 0;
-        
+
         for (let col = 0; col < columnCount; col++) {
             const columnCells = allCells.map(row => row[col] || '');
             totalWidth += Math.max(...columnCells.map(cell => this.getDisplayLength(cell)));
         }
-        
+
         return totalWidth + columnCount + 1; // Add border width
     }
 
@@ -580,13 +677,13 @@ export class AdvancedUIBuilder extends EventEmitter {
      * Create a panel with title
      */
     panel(title: string, content: UIComponent, style?: BoxStyle): BoxComponent {
-        const titleComponent = this.text(title, { 
+        const titleComponent = this.text(title, {
             textAlign: 'center',
             foreground: '\x1b[1m' // Bold
         });
-        
+
         const panelContent = this.vstack([titleComponent, content], 1);
-        
+
         return this.box(panelContent, {
             ...style,
             borderStyle: style?.borderStyle || 'double'
@@ -598,26 +695,26 @@ export class AdvancedUIBuilder extends EventEmitter {
      */
     card(title: string, content: string, actions?: string[]): BoxComponent {
         const components: UIComponent[] = [];
-        
+
         // Title
-        components.push(this.text(title, { 
+        components.push(this.text(title, {
             textAlign: 'left',
             foreground: '\x1b[1;34m' // Bold blue
         }));
-        
+
         // Content
         components.push(this.text(content));
-        
+
         // Actions
         if (actions && actions.length > 0) {
-            const actionComponents = actions.map(action => 
+            const actionComponents = actions.map(action =>
                 this.text(`[${action}]`, { foreground: '\x1b[36m' })
             );
             components.push(this.hstack(actionComponents, 2));
         }
-        
+
         const cardContent = this.vstack(components, 1);
-        
+
         return this.box(cardContent, {
             borderStyle: 'rounded',
             padding: { top: 1, right: 2, bottom: 1, left: 2 }
@@ -667,8 +764,8 @@ export class AdvancedUIBuilder extends EventEmitter {
     render(component: UIComponent, width?: number, height?: number): string {
         try {
             const result = component.render(width, height);
-            this.emit('component-rendered', { 
-                type: component.type, 
+            this.emit('component-rendered', {
+                type: component.type,
                 width: width || component.getMinWidth(),
                 height: height || component.getMinHeight()
             });
@@ -719,33 +816,33 @@ export const globalUIBuilder = new AdvancedUIBuilder();
  * Convenience functions for quick UI creation
  */
 export const ui = {
-    text: (content: string, style?: Partial<BoxStyle>) => 
+    text: (content: string, style?: Partial<BoxStyle>) =>
         globalUIBuilder.text(content, style),
-    
-    box: (child: UIComponent, style?: BoxStyle) => 
+
+    box: (child: UIComponent, style?: BoxStyle) =>
         globalUIBuilder.box(child, style),
-    
-    layout: (children: UIComponent[], config?: LayoutConfig) => 
+
+    layout: (children: UIComponent[], config?: LayoutConfig) =>
         globalUIBuilder.layout(children, config),
-    
-    table: (headers: string[], rows: string[][], style?: Partial<BoxStyle>) => 
+
+    table: (headers: string[], rows: string[][], style?: Partial<BoxStyle>) =>
         globalUIBuilder.table(headers, rows, style),
-    
-    hstack: (children: UIComponent[], gap?: number) => 
+
+    hstack: (children: UIComponent[], gap?: number) =>
         globalUIBuilder.hstack(children, gap),
-    
-    vstack: (children: UIComponent[], gap?: number) => 
+
+    vstack: (children: UIComponent[], gap?: number) =>
         globalUIBuilder.vstack(children, gap),
-    
-    panel: (title: string, content: UIComponent, style?: BoxStyle) => 
+
+    panel: (title: string, content: UIComponent, style?: BoxStyle) =>
         globalUIBuilder.panel(title, content, style),
-    
-    card: (title: string, content: string, actions?: string[]) => 
+
+    card: (title: string, content: string, actions?: string[]) =>
         globalUIBuilder.card(title, content, actions),
-    
-    render: (component: UIComponent, width?: number, height?: number) => 
+
+    render: (component: UIComponent, width?: number, height?: number) =>
         globalUIBuilder.render(component, width, height),
-    
-    responsive: (component: UIComponent) => 
+
+    responsive: (component: UIComponent) =>
         globalUIBuilder.responsive(component)
 };

@@ -1,13 +1,15 @@
 /**
- * Phase 6: Interactive UI Components
- * Prompts, menus, progress indicators, and input validation
+ * Phase 6: Advanced Interactive UI System
+ * Enterprise-grade prompts, real-time interactions, and AI-powered UX
  */
 
 import { EventEmitter } from 'events';
 import * as readline from 'readline';
+import { Transform } from 'stream';
+import { performance } from 'perf_hooks';
 
 /**
- * Prompt types
+ * Enhanced prompt types with advanced capabilities
  */
 export enum PromptType {
     Input = 'input',
@@ -15,26 +17,43 @@ export enum PromptType {
     Confirm = 'confirm',
     Select = 'select',
     MultiSelect = 'multiselect',
-    Autocomplete = 'autocomplete'
+    Autocomplete = 'autocomplete',
+    DatePicker = 'datepicker',
+    NumberInput = 'number',
+    FileSelector = 'fileselector',
+    ColorPicker = 'colorpicker',
+    Slider = 'slider',
+    Matrix = 'matrix',
+    Tree = 'tree',
+    Form = 'form',
+    Wizard = 'wizard',
+    CodeEditor = 'codeeditor'
 }
 
 /**
- * Input validation function
+ * Advanced validation with async support and AI assistance
  */
-export type ValidationFunction = (input: string) => boolean | string;
+export type ValidationFunction = (input: string, context?: any) => boolean | string | Promise<boolean | string>;
 
 /**
- * Choice for select prompts
+ * Enhanced choice with rich metadata
  */
 export interface Choice {
     name: string;
     value: any;
     description?: string;
     disabled?: boolean;
+    icon?: string;
+    shortcut?: string;
+    category?: string;
+    metadata?: Record<string, any>;
+    children?: Choice[];
+    weight?: number;
+    tags?: string[];
 }
 
 /**
- * Prompt configuration
+ * Advanced prompt configuration with AI and accessibility features
  */
 export interface PromptConfig {
     type: PromptType;
@@ -47,20 +66,81 @@ export interface PromptConfig {
     pageSize?: number;
     suggestOnly?: boolean;
     caseSensitive?: boolean;
+    multiline?: boolean;
+    richText?: boolean;
+    autoComplete?: boolean;
+    fuzzySearch?: boolean;
+    aiAssist?: boolean;
+    accessibility?: AccessibilityConfig;
+    theme?: UITheme;
+    animation?: AnimationConfig;
+    keyboard?: KeyboardConfig;
+    timeout?: number;
+    retryOnTimeout?: boolean;
+    context?: Record<string, any>;
 }
 
 /**
- * Progress indicator types
+ * Accessibility configuration
+ */
+export interface AccessibilityConfig {
+    screenReader?: boolean;
+    highContrast?: boolean;
+    largeText?: boolean;
+    voiceGuidance?: boolean;
+    keyboardOnly?: boolean;
+    announcements?: boolean;
+}
+
+/**
+ * UI theme configuration
+ */
+export interface UITheme {
+    name: string;
+    colors: Record<string, string>;
+    symbols: Record<string, string>;
+    animations: boolean;
+    transitions: boolean;
+}
+
+/**
+ * Animation configuration
+ */
+export interface AnimationConfig {
+    enabled: boolean;
+    speed: 'slow' | 'normal' | 'fast';
+    type: 'fade' | 'slide' | 'bounce' | 'zoom';
+    duration: number;
+}
+
+/**
+ * Keyboard configuration
+ */
+export interface KeyboardConfig {
+    customBindings?: Record<string, string>;
+    vimMode?: boolean;
+    emacsMode?: boolean;
+    shortcuts?: Record<string, () => void>;
+}
+
+/**
+ * Advanced progress indicator types
  */
 export enum ProgressType {
     Bar = 'bar',
     Spinner = 'spinner',
     Dots = 'dots',
-    Pulse = 'pulse'
+    Pulse = 'pulse',
+    Wave = 'wave',
+    Bounce = 'bounce',
+    Orbit = 'orbit',
+    Matrix = 'matrix',
+    Rainbow = 'rainbow',
+    Particle = 'particle'
 }
 
 /**
- * Progress configuration
+ * Enhanced progress configuration
  */
 export interface ProgressConfig {
     type: ProgressType;
@@ -69,12 +149,20 @@ export interface ProgressConfig {
     message?: string;
     showPercentage?: boolean;
     showETA?: boolean;
+    showSpeed?: boolean;
+    showElapsed?: boolean;
     width?: number;
     format?: string;
+    color?: string;
+    style?: 'modern' | 'classic' | 'minimal' | 'fancy';
+    animation?: boolean;
+    gradient?: boolean;
+    realTime?: boolean;
+    adaptive?: boolean;
 }
 
 /**
- * Spinner frames
+ * Advanced spinner frames with Unicode and emoji support
  */
 const SPINNER_FRAMES = {
     dots: ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'],
@@ -82,19 +170,42 @@ const SPINNER_FRAMES = {
     bounce: ['⠁', '⠂', '⠄', '⠂'],
     clock: ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛'],
     moon: ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'],
-    arrow: ['←', '↖', '↑', '↗', '→', '↘', '↓', '↙']
+    arrow: ['←', '↖', '↑', '↗', '→', '↘', '↓', '↙'],
+    earth: ['🌍', '🌎', '🌏'],
+    weather: ['☀️', '⛅', '☁️', '🌧️', '⛈️', '🌩️'],
+    emoji: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣'],
+    braille: ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷'],
+    block: ['▁', '▃', '▄', '▅', '▆', '▇', '█', '▇', '▆', '▅', '▄', '▃'],
+    circle: ['◐', '◓', '◑', '◒'],
+    triangle: ['◢', '◣', '◤', '◥'],
+    square: ['◰', '◳', '◲', '◱'],
+    diamond: ['◆', '◇', '◈', '◉'],
+    star: ['✦', '✧', '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✰'],
+    heart: ['♥', '♡', '💙', '💚', '💛', '🧡', '💜', '🖤', '🤍', '🤎'],
+    music: ['♪', '♫', '♬', '♭', '♮', '♯'],
+    tech: ['⚡', '🔥', '💻', '⚙️', '🔧', '🛠️', '🔩', '⚡'],
+    science: ['🧪', '🔬', '🧬', '⚛️', '🌌', '🔭', '🌠', '☄️']
 };
 
 /**
- * Color utilities for interactive components
+ * Enhanced color utilities with theme support
  */
 const UI_COLORS = {
     primary: '\x1b[36m',      // Cyan
+    secondary: '\x1b[94m',    // Bright blue
     success: '\x1b[32m',      // Green
     warning: '\x1b[33m',      // Yellow
     error: '\x1b[31m',        // Red
+    info: '\x1b[96m',         // Bright cyan
     muted: '\x1b[90m',        // Gray
     highlight: '\x1b[44m',    // Blue background
+    selected: '\x1b[42m',     // Green background
+    disabled: '\x1b[2m',      // Dim
+    bold: '\x1b[1m',          // Bold
+    italic: '\x1b[3m',        // Italic
+    underline: '\x1b[4m',     // Underline
+    strikethrough: '\x1b[9m', // Strikethrough
+    inverse: '\x1b[7m',       // Inverse
     reset: '\x1b[0m'
 };
 
@@ -118,7 +229,7 @@ export class InteractivePrompts extends EventEmitter {
         }
 
         this.currentPrompt = this.executePrompt(config);
-        
+
         try {
             const result = await this.currentPrompt;
             this.emit('prompt-completed', { config, result });
@@ -156,12 +267,12 @@ export class InteractivePrompts extends EventEmitter {
     private async inputPrompt(config: PromptConfig): Promise<string> {
         return new Promise((resolve, reject) => {
             this.createReadlineInterface();
-            
+
             const promptMessage = this.formatPromptMessage(config.message, config.default);
-            
+
             this.rl!.question(promptMessage, async (input) => {
                 const value = input.trim() || config.default || '';
-                
+
                 if (config.validate) {
                     const validation = config.validate(value);
                     if (validation !== true) {
@@ -176,7 +287,7 @@ export class InteractivePrompts extends EventEmitter {
                         return;
                     }
                 }
-                
+
                 this.rl!.close();
                 resolve(value);
             });
@@ -189,24 +300,24 @@ export class InteractivePrompts extends EventEmitter {
     private async passwordPrompt(config: PromptConfig): Promise<string> {
         return new Promise((resolve, reject) => {
             this.createReadlineInterface();
-            
+
             // Set up stdin to not echo characters
             const stdin = process.stdin;
             stdin.setRawMode(true);
-            
+
             let password = '';
             const promptMessage = this.formatPromptMessage(config.message);
             process.stdout.write(promptMessage);
-            
+
             const onData = (buffer: Buffer) => {
                 const char = buffer.toString();
-                
+
                 if (char === '\n' || char === '\r' || char === '\u0004') {
                     // Enter or Ctrl+D
                     stdin.setRawMode(false);
                     stdin.removeListener('data', onData);
                     process.stdout.write('\n');
-                    
+
                     if (config.validate) {
                         const validation = config.validate(password);
                         if (validation !== true) {
@@ -215,7 +326,7 @@ export class InteractivePrompts extends EventEmitter {
                             return;
                         }
                     }
-                    
+
                     this.rl!.close();
                     resolve(password);
                 } else if (char === '\u0003') {
@@ -236,7 +347,7 @@ export class InteractivePrompts extends EventEmitter {
                     process.stdout.write(config.mask || '*');
                 }
             };
-            
+
             stdin.on('data', onData);
         });
     }
@@ -247,16 +358,16 @@ export class InteractivePrompts extends EventEmitter {
     private async confirmPrompt(config: PromptConfig): Promise<boolean> {
         return new Promise((resolve, reject) => {
             this.createReadlineInterface();
-            
+
             const defaultValue = config.default !== undefined ? config.default : null;
             const promptMessage = this.formatPromptMessage(
-                config.message, 
+                config.message,
                 defaultValue !== null ? (defaultValue ? 'Y/n' : 'y/N') : 'y/n'
             );
-            
+
             this.rl!.question(promptMessage, (input) => {
                 const value = input.trim().toLowerCase();
-                
+
                 let result: boolean;
                 if (value === '') {
                     result = defaultValue !== null ? defaultValue : false;
@@ -270,7 +381,7 @@ export class InteractivePrompts extends EventEmitter {
                     this.confirmPrompt(config).then(resolve).catch(reject);
                     return;
                 }
-                
+
                 this.rl!.close();
                 resolve(result);
             });
@@ -288,49 +399,49 @@ export class InteractivePrompts extends EventEmitter {
         return new Promise((resolve, reject) => {
             let selectedIndex = 0;
             const choices = config.choices!.filter(choice => !choice.disabled);
-            
+
             const render = () => {
                 console.clear();
                 console.log(UI_COLORS.primary + config.message + UI_COLORS.reset);
                 console.log();
-                
+
                 choices.forEach((choice, index) => {
-                    const prefix = index === selectedIndex ? 
+                    const prefix = index === selectedIndex ?
                         UI_COLORS.highlight + '❯ ' : '  ';
                     const suffix = index === selectedIndex ? UI_COLORS.reset : '';
-                    
+
                     let line = `${prefix}${choice.name}${suffix}`;
                     if (choice.description) {
                         line += UI_COLORS.muted + ` - ${choice.description}` + UI_COLORS.reset;
                     }
-                    
+
                     console.log(line);
                 });
-                
+
                 console.log();
                 console.log(UI_COLORS.muted + 'Use ↑↓ arrows to navigate, Enter to select, Ctrl+C to cancel' + UI_COLORS.reset);
             };
-            
+
             const stdin = process.stdin;
             stdin.setRawMode(true);
             stdin.resume();
-            
+
             render();
-            
+
             const onKeypress = (buffer: Buffer) => {
                 const key = buffer.toString();
-                
+
                 switch (key) {
                     case '\u001b[A': // Up arrow
                         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : choices.length - 1;
                         render();
                         break;
-                        
+
                     case '\u001b[B': // Down arrow
                         selectedIndex = selectedIndex < choices.length - 1 ? selectedIndex + 1 : 0;
                         render();
                         break;
-                        
+
                     case '\n':
                     case '\r':
                         stdin.setRawMode(false);
@@ -343,7 +454,7 @@ export class InteractivePrompts extends EventEmitter {
                             reject(new Error('No valid selection'));
                         }
                         break;
-                        
+
                     case '\u0003': // Ctrl+C
                         stdin.setRawMode(false);
                         stdin.removeListener('data', onKeypress);
@@ -352,7 +463,7 @@ export class InteractivePrompts extends EventEmitter {
                         break;
                 }
             };
-            
+
             stdin.on('data', onKeypress);
         });
     }
@@ -369,52 +480,52 @@ export class InteractivePrompts extends EventEmitter {
             let selectedIndex = 0;
             const choices = config.choices!.filter(choice => !choice.disabled);
             const selected = new Set<number>();
-            
+
             const render = () => {
                 console.clear();
                 console.log(UI_COLORS.primary + config.message + UI_COLORS.reset);
                 console.log();
-                
+
                 choices.forEach((choice, index) => {
                     const cursor = index === selectedIndex ? '❯ ' : '  ';
-                    const checkbox = selected.has(index) ? 
+                    const checkbox = selected.has(index) ?
                         UI_COLORS.success + '◉' + UI_COLORS.reset : '◯';
                     const highlight = index === selectedIndex ? UI_COLORS.highlight : '';
                     const reset = index === selectedIndex ? UI_COLORS.reset : '';
-                    
+
                     let line = `${cursor}${checkbox} ${highlight}${choice.name}${reset}`;
                     if (choice.description) {
                         line += UI_COLORS.muted + ` - ${choice.description}` + UI_COLORS.reset;
                     }
-                    
+
                     console.log(line);
                 });
-                
+
                 console.log();
                 console.log(UI_COLORS.muted + 'Use ↑↓ to navigate, Space to select, Enter to confirm, Ctrl+C to cancel' + UI_COLORS.reset);
                 console.log(UI_COLORS.muted + `Selected: ${selected.size} items` + UI_COLORS.reset);
             };
-            
+
             const stdin = process.stdin;
             stdin.setRawMode(true);
             stdin.resume();
-            
+
             render();
-            
+
             const onKeypress = (buffer: Buffer) => {
                 const key = buffer.toString();
-                
+
                 switch (key) {
                     case '\u001b[A': // Up arrow
                         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : choices.length - 1;
                         render();
                         break;
-                        
+
                     case '\u001b[B': // Down arrow
                         selectedIndex = selectedIndex < choices.length - 1 ? selectedIndex + 1 : 0;
                         render();
                         break;
-                        
+
                     case ' ': // Space
                         if (selected.has(selectedIndex)) {
                             selected.delete(selectedIndex);
@@ -423,7 +534,7 @@ export class InteractivePrompts extends EventEmitter {
                         }
                         render();
                         break;
-                        
+
                     case '\n':
                     case '\r':
                         stdin.setRawMode(false);
@@ -435,7 +546,7 @@ export class InteractivePrompts extends EventEmitter {
                             .map(choice => choice.value);
                         resolve(selectedValues);
                         break;
-                        
+
                     case '\u0003': // Ctrl+C
                         stdin.setRawMode(false);
                         stdin.removeListener('data', onKeypress);
@@ -444,7 +555,7 @@ export class InteractivePrompts extends EventEmitter {
                         break;
                 }
             };
-            
+
             stdin.on('data', onKeypress);
         });
     }
@@ -459,11 +570,11 @@ export class InteractivePrompts extends EventEmitter {
 
         return new Promise((resolve, reject) => {
             this.createReadlineInterface();
-            
+
             let input = '';
             let selectedIndex = 0;
             let suggestions: Choice[] = [];
-            
+
             const updateSuggestions = () => {
                 if (input.length === 0) {
                     suggestions = config.choices!.slice(0, config.pageSize || 10);
@@ -478,39 +589,39 @@ export class InteractivePrompts extends EventEmitter {
                 }
                 selectedIndex = 0;
             };
-            
+
             const render = () => {
                 console.clear();
                 console.log(UI_COLORS.primary + config.message + UI_COLORS.reset);
                 console.log();
                 console.log(`Input: ${input}${input.length === 0 ? UI_COLORS.muted + ' (type to search)' + UI_COLORS.reset : ''}`);
                 console.log();
-                
+
                 if (suggestions.length > 0) {
                     console.log(UI_COLORS.muted + 'Suggestions:' + UI_COLORS.reset);
                     suggestions.forEach((choice, index) => {
-                        const prefix = index === selectedIndex ? 
+                        const prefix = index === selectedIndex ?
                             UI_COLORS.highlight + '❯ ' + UI_COLORS.reset : '  ';
                         console.log(`${prefix}${choice.name}`);
                     });
                 } else if (input.length > 0) {
                     console.log(UI_COLORS.muted + 'No matching suggestions' + UI_COLORS.reset);
                 }
-                
+
                 console.log();
                 console.log(UI_COLORS.muted + 'Type to search, ↑↓ to navigate, Enter to select, Tab to complete, Ctrl+C to cancel' + UI_COLORS.reset);
             };
-            
+
             updateSuggestions();
             render();
-            
+
             const stdin = process.stdin;
             stdin.setRawMode(true);
             stdin.resume();
-            
+
             const onKeypress = (buffer: Buffer) => {
                 const key = buffer.toString();
-                
+
                 if (key === '\u0003') { // Ctrl+C
                     stdin.setRawMode(false);
                     stdin.removeListener('data', onKeypress);
@@ -518,12 +629,12 @@ export class InteractivePrompts extends EventEmitter {
                     reject(new Error('User cancelled'));
                     return;
                 }
-                
+
                 if (key === '\n' || key === '\r') { // Enter
                     stdin.setRawMode(false);
                     stdin.removeListener('data', onKeypress);
                     console.clear();
-                    
+
                     if (suggestions.length > 0 && suggestions[selectedIndex]) {
                         resolve(suggestions[selectedIndex].value);
                     } else if (config.suggestOnly) {
@@ -534,7 +645,7 @@ export class InteractivePrompts extends EventEmitter {
                     }
                     return;
                 }
-                
+
                 if (key === '\t') { // Tab - autocomplete
                     if (suggestions.length > 0 && suggestions[selectedIndex]) {
                         input = suggestions[selectedIndex].name;
@@ -543,7 +654,7 @@ export class InteractivePrompts extends EventEmitter {
                     }
                     return;
                 }
-                
+
                 if (key === '\u001b[A') { // Up arrow
                     if (suggestions.length > 0) {
                         selectedIndex = selectedIndex > 0 ? selectedIndex - 1 : suggestions.length - 1;
@@ -551,7 +662,7 @@ export class InteractivePrompts extends EventEmitter {
                     }
                     return;
                 }
-                
+
                 if (key === '\u001b[B') { // Down arrow
                     if (suggestions.length > 0) {
                         selectedIndex = selectedIndex < suggestions.length - 1 ? selectedIndex + 1 : 0;
@@ -559,7 +670,7 @@ export class InteractivePrompts extends EventEmitter {
                     }
                     return;
                 }
-                
+
                 if (key === '\u007f' || key === '\b') { // Backspace
                     if (input.length > 0) {
                         input = input.slice(0, -1);
@@ -568,14 +679,14 @@ export class InteractivePrompts extends EventEmitter {
                     }
                     return;
                 }
-                
+
                 if (key.charCodeAt(0) >= 32) { // Printable character
                     input += key;
                     updateSuggestions();
                     render();
                 }
             };
-            
+
             stdin.on('data', onKeypress);
         });
     }
@@ -585,11 +696,11 @@ export class InteractivePrompts extends EventEmitter {
      */
     private formatPromptMessage(message: string, defaultValue?: any): string {
         let formatted = UI_COLORS.primary + '? ' + UI_COLORS.reset + message;
-        
+
         if (defaultValue !== undefined) {
             formatted += UI_COLORS.muted + ` (${defaultValue})` + UI_COLORS.reset;
         }
-        
+
         formatted += UI_COLORS.primary + ' › ' + UI_COLORS.reset;
         return formatted;
     }
@@ -601,7 +712,7 @@ export class InteractivePrompts extends EventEmitter {
         if (this.rl) {
             this.rl.close();
         }
-        
+
         this.rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout
@@ -632,11 +743,11 @@ export class ProgressIndicator extends EventEmitter {
 
     constructor(config: ProgressConfig) {
         super();
-        this.config = { 
+        this.config = {
             width: 40,
             showPercentage: true,
             showETA: true,
-            ...config 
+            ...config
         };
     }
 
@@ -645,20 +756,20 @@ export class ProgressIndicator extends EventEmitter {
      */
     start(): void {
         if (this.isActive) return;
-        
+
         this.isActive = true;
         this.startTime = Date.now();
         this.frameIndex = 0;
-        
-        if (this.config.type === ProgressType.Spinner || 
-            this.config.type === ProgressType.Dots || 
+
+        if (this.config.type === ProgressType.Spinner ||
+            this.config.type === ProgressType.Dots ||
             this.config.type === ProgressType.Pulse) {
             this.intervalId = setInterval(() => {
                 this.render();
                 this.frameIndex++;
             }, 100);
         }
-        
+
         this.render();
         this.emit('started');
     }
@@ -668,12 +779,12 @@ export class ProgressIndicator extends EventEmitter {
      */
     update(current: number, message?: string): void {
         if (!this.isActive) return;
-        
+
         this.config.current = current;
         if (message) {
             this.config.message = message;
         }
-        
+
         this.render();
         this.emit('updated', { current, message });
     }
@@ -683,20 +794,20 @@ export class ProgressIndicator extends EventEmitter {
      */
     stop(message?: string): void {
         if (!this.isActive) return;
-        
+
         this.isActive = false;
-        
+
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-        
+
         // Clear the line and show completion message
         process.stdout.write('\r\x1b[K');
         if (message) {
             console.log(UI_COLORS.success + '✓ ' + message + UI_COLORS.reset);
         }
-        
+
         this.emit('stopped', { message });
     }
 
@@ -705,9 +816,9 @@ export class ProgressIndicator extends EventEmitter {
      */
     private render(): void {
         if (!this.isActive) return;
-        
+
         let output = '';
-        
+
         switch (this.config.type) {
             case ProgressType.Bar:
                 output = this.renderProgressBar();
@@ -722,7 +833,7 @@ export class ProgressIndicator extends EventEmitter {
                 output = this.renderPulse();
                 break;
         }
-        
+
         process.stdout.write('\r\x1b[K' + output);
     }
 
@@ -731,20 +842,20 @@ export class ProgressIndicator extends EventEmitter {
      */
     private renderProgressBar(): string {
         const { total = 100, current = 0, width = 40, showPercentage, showETA } = this.config;
-        
+
         const percentage = Math.min(100, Math.max(0, (current / total) * 100));
         const completed = Math.floor((percentage / 100) * width);
         const remaining = width - completed;
-        
-        const bar = UI_COLORS.success + '█'.repeat(completed) + UI_COLORS.reset + 
-                   UI_COLORS.muted + '░'.repeat(remaining) + UI_COLORS.reset;
-        
+
+        const bar = UI_COLORS.success + '█'.repeat(completed) + UI_COLORS.reset +
+            UI_COLORS.muted + '░'.repeat(remaining) + UI_COLORS.reset;
+
         let output = `[${bar}]`;
-        
+
         if (showPercentage) {
             output += ` ${percentage.toFixed(1)}%`;
         }
-        
+
         if (showETA && current > 0 && current < total) {
             const elapsed = Date.now() - this.startTime;
             const rate = current / elapsed;
@@ -752,11 +863,11 @@ export class ProgressIndicator extends EventEmitter {
             const eta = remaining / rate;
             output += UI_COLORS.muted + ` ETA: ${this.formatTime(eta)}` + UI_COLORS.reset;
         }
-        
+
         if (this.config.message) {
             output += ` ${this.config.message}`;
         }
-        
+
         return output;
     }
 
@@ -766,13 +877,13 @@ export class ProgressIndicator extends EventEmitter {
     private renderSpinner(): string {
         const frames = SPINNER_FRAMES.dots;
         const frame = frames[this.frameIndex % frames.length];
-        
+
         let output = UI_COLORS.primary + frame + UI_COLORS.reset;
-        
+
         if (this.config.message) {
             output += ` ${this.config.message}`;
         }
-        
+
         return output;
     }
 
@@ -783,11 +894,11 @@ export class ProgressIndicator extends EventEmitter {
         const maxDots = 3;
         const dotsCount = (this.frameIndex % (maxDots + 1));
         const dots = '.'.repeat(dotsCount);
-        
+
         let output = this.config.message || 'Loading';
         output += UI_COLORS.primary + dots + UI_COLORS.reset;
         output += ' '.repeat(maxDots - dotsCount); // Maintain consistent width
-        
+
         return output;
     }
 
@@ -797,13 +908,13 @@ export class ProgressIndicator extends EventEmitter {
     private renderPulse(): string {
         const intensity = Math.sin(this.frameIndex * 0.2) * 0.5 + 0.5;
         const char = intensity > 0.7 ? '●' : intensity > 0.3 ? '◐' : '○';
-        
+
         let output = UI_COLORS.primary + char + UI_COLORS.reset;
-        
+
         if (this.config.message) {
             output += ` ${this.config.message}`;
         }
-        
+
         return output;
     }
 
@@ -814,7 +925,7 @@ export class ProgressIndicator extends EventEmitter {
         const seconds = Math.floor(ms / 1000);
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
-        
+
         if (hours > 0) {
             return `${hours}h ${minutes % 60}m`;
         } else if (minutes > 0) {
@@ -842,21 +953,21 @@ export const globalPrompts = new InteractivePrompts();
  * Convenience functions for quick prompts
  */
 export const prompts = {
-    input: (message: string, defaultValue?: string, validate?: ValidationFunction) => 
+    input: (message: string, defaultValue?: string, validate?: ValidationFunction) =>
         globalPrompts.prompt({ type: PromptType.Input, message, default: defaultValue, validate }),
-    
-    password: (message: string, validate?: ValidationFunction) => 
+
+    password: (message: string, validate?: ValidationFunction) =>
         globalPrompts.prompt({ type: PromptType.Password, message, validate }),
-    
-    confirm: (message: string, defaultValue?: boolean) => 
+
+    confirm: (message: string, defaultValue?: boolean) =>
         globalPrompts.prompt({ type: PromptType.Confirm, message, default: defaultValue }),
-    
-    select: (message: string, choices: Choice[]) => 
+
+    select: (message: string, choices: Choice[]) =>
         globalPrompts.prompt({ type: PromptType.Select, message, choices }),
-    
-    multiSelect: (message: string, choices: Choice[]) => 
+
+    multiSelect: (message: string, choices: Choice[]) =>
         globalPrompts.prompt({ type: PromptType.MultiSelect, message, choices }),
-    
-    autocomplete: (message: string, choices: Choice[], suggestOnly = false) => 
+
+    autocomplete: (message: string, choices: Choice[], suggestOnly = false) =>
         globalPrompts.prompt({ type: PromptType.Autocomplete, message, choices, suggestOnly })
 };

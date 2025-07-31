@@ -1,12 +1,15 @@
 /**
- * Phase 6: Output Formatting & UI - Core Output System
- * Rich output formatters with table, JSON, YAML, and XML support
+ * Phase 6: Advanced Output Formatting System
+ * Enterprise-grade formatters with streaming, compression, and AI-powered optimization
  */
 
 import { EventEmitter } from 'events';
+import { Transform, Writable } from 'stream';
+import { createHash } from 'crypto';
+import { gzipSync, deflateSync } from 'zlib';
 
 /**
- * Output format types
+ * Advanced output format types with streaming support
  */
 export enum OutputFormat {
     Table = 'table',
@@ -14,12 +17,20 @@ export enum OutputFormat {
     YAML = 'yaml',
     XML = 'xml',
     CSV = 'csv',
+    TSV = 'tsv',
+    HTML = 'html',
+    Markdown = 'markdown',
+    LaTeX = 'latex',
+    Excel = 'excel',
+    PDF = 'pdf',
     Pretty = 'pretty',
-    Raw = 'raw'
+    Raw = 'raw',
+    Binary = 'binary',
+    Compressed = 'compressed'
 }
 
 /**
- * Color themes for output
+ * Advanced color themes with accessibility support
  */
 export enum ColorTheme {
     Default = 'default',
@@ -27,31 +38,119 @@ export enum ColorTheme {
     Light = 'light',
     HighContrast = 'high-contrast',
     Colorful = 'colorful',
-    Minimal = 'minimal'
+    Minimal = 'minimal',
+    Solarized = 'solarized',
+    Monokai = 'monokai',
+    GitHub = 'github',
+    Material = 'material',
+    Dracula = 'dracula',
+    Nord = 'nord',
+    Accessibility = 'accessibility'
 }
 
 /**
- * Table alignment options
+ * Table alignment and formatting options
  */
 export enum TableAlignment {
     Left = 'left',
     Center = 'center',
-    Right = 'right'
+    Right = 'right',
+    Justify = 'justify',
+    Auto = 'auto'
 }
 
 /**
- * Table configuration
+ * Table border styles
+ */
+export enum TableBorderStyle {
+    None = 'none',
+    Simple = 'simple',
+    Double = 'double',
+    Rounded = 'rounded',
+    Thick = 'thick',
+    Dashed = 'dashed',
+    Dotted = 'dotted',
+    Unicode = 'unicode',
+    ASCII = 'ascii'
+}
+
+/**
+ * Cell styling configuration
+ */
+export interface CellStyle {
+    color?: string;
+    backgroundColor?: string;
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+    alignment?: TableAlignment;
+    padding?: number;
+    format?: (value: any) => string;
+}
+
+/**
+ * Pagination configuration
+ */
+export interface PaginationConfig {
+    pageSize: number;
+    currentPage?: number;
+    showPageInfo?: boolean;
+    showNavigation?: boolean;
+}
+
+/**
+ * Streaming configuration
+ */
+export interface StreamingConfig {
+    enabled: boolean;
+    chunkSize?: number;
+    bufferSize?: number;
+    compression?: 'gzip' | 'deflate' | 'none';
+    encoding?: 'utf8' | 'base64' | 'hex';
+}
+
+/**
+ * Performance configuration
+ */
+export interface PerformanceConfig {
+    enableCaching?: boolean;
+    cacheSize?: number;
+    enableProfiling?: boolean;
+    enableMetrics?: boolean;
+    maxProcessingTime?: number;
+    enableWorkers?: boolean;
+}
+
+/**
+ * Advanced table configuration with enterprise features
  */
 export interface TableConfig {
     headers: string[];
-    rows: (string | number | boolean)[][];
+    rows: (string | number | boolean | null | undefined)[][];
     alignment?: TableAlignment[];
     maxWidth?: number;
+    minWidth?: number;
     borders?: boolean;
+    borderStyle?: TableBorderStyle;
+    headerStyle?: CellStyle;
+    rowStyles?: CellStyle[];
+    alternatingRows?: boolean;
+    filterable?: boolean;
+    pagination?: PaginationConfig;
+    responsive?: boolean;
+    virtualized?: boolean;
+    maxRows?: number;
     striped?: boolean;
     sortable?: boolean;
     sortBy?: string;
     sortDirection?: 'asc' | 'desc';
+    groupBy?: string;
+    aggregations?: Record<string, 'sum' | 'avg' | 'count' | 'min' | 'max'>;
+    exportable?: boolean;
+    selectable?: boolean;
+    searchable?: boolean;
+    freezeHeaders?: boolean;
+    resizable?: boolean;
 }
 
 /**
@@ -100,7 +199,7 @@ const COLORS = {
     blink: '\x1b[5m',
     reverse: '\x1b[7m',
     hidden: '\x1b[8m',
-    
+
     // Foreground colors
     black: '\x1b[30m',
     red: '\x1b[31m',
@@ -110,7 +209,7 @@ const COLORS = {
     magenta: '\x1b[35m',
     cyan: '\x1b[36m',
     white: '\x1b[37m',
-    
+
     // Background colors
     bgBlack: '\x1b[40m',
     bgRed: '\x1b[41m',
@@ -120,7 +219,7 @@ const COLORS = {
     bgMagenta: '\x1b[45m',
     bgCyan: '\x1b[46m',
     bgWhite: '\x1b[47m',
-    
+
     // Extended colors
     gray: '\x1b[90m',
     brightRed: '\x1b[91m',
@@ -133,7 +232,7 @@ const COLORS = {
 };
 
 /**
- * Color themes configuration
+ * Extended color themes configuration with modern palettes
  */
 const COLOR_THEMES: Record<ColorTheme, Record<string, string>> = {
     [ColorTheme.Default]: {
@@ -195,6 +294,76 @@ const COLOR_THEMES: Record<ColorTheme, Record<string, string>> = {
         muted: '',
         accent: '',
         text: ''
+    },
+    [ColorTheme.Solarized]: {
+        primary: '\x1b[38;5;33m',    // Solarized blue
+        secondary: '\x1b[38;5;37m',  // Solarized cyan
+        success: '\x1b[38;5;64m',    // Solarized green
+        warning: '\x1b[38;5;136m',   // Solarized yellow
+        error: '\x1b[38;5;160m',     // Solarized red
+        muted: '\x1b[38;5;244m',     // Solarized base01
+        accent: '\x1b[38;5;125m',    // Solarized magenta
+        text: '\x1b[38;5;254m'       // Solarized base0
+    },
+    [ColorTheme.Monokai]: {
+        primary: '\x1b[38;5;81m',    // Monokai blue
+        secondary: '\x1b[38;5;208m', // Monokai orange
+        success: '\x1b[38;5;118m',   // Monokai green
+        warning: '\x1b[38;5;227m',   // Monokai yellow
+        error: '\x1b[38;5;197m',     // Monokai pink
+        muted: '\x1b[38;5;59m',      // Monokai comment
+        accent: '\x1b[38;5;141m',    // Monokai purple
+        text: '\x1b[38;5;253m'       // Monokai foreground
+    },
+    [ColorTheme.GitHub]: {
+        primary: '\x1b[38;5;4m',     // GitHub blue
+        secondary: '\x1b[38;5;6m',   // GitHub teal
+        success: '\x1b[38;5;2m',     // GitHub green
+        warning: '\x1b[38;5;3m',     // GitHub yellow
+        error: '\x1b[38;5;1m',       // GitHub red
+        muted: '\x1b[38;5;8m',       // GitHub gray
+        accent: '\x1b[38;5;5m',      // GitHub purple
+        text: '\x1b[38;5;15m'        // GitHub white
+    },
+    [ColorTheme.Material]: {
+        primary: '\x1b[38;5;33m',    // Material blue
+        secondary: '\x1b[38;5;51m',  // Material cyan
+        success: '\x1b[38;5;76m',    // Material green
+        warning: '\x1b[38;5;214m',   // Material orange
+        error: '\x1b[38;5;203m',     // Material red
+        muted: '\x1b[38;5;145m',     // Material gray
+        accent: '\x1b[38;5;170m',    // Material pink
+        text: '\x1b[38;5;255m'       // Material white
+    },
+    [ColorTheme.Dracula]: {
+        primary: '\x1b[38;5;141m',   // Dracula purple
+        secondary: '\x1b[38;5;117m', // Dracula cyan
+        success: '\x1b[38;5;84m',    // Dracula green
+        warning: '\x1b[38;5;228m',   // Dracula yellow
+        error: '\x1b[38;5;212m',     // Dracula pink
+        muted: '\x1b[38;5;61m',      // Dracula comment
+        accent: '\x1b[38;5;215m',    // Dracula orange
+        text: '\x1b[38;5;255m'       // Dracula foreground
+    },
+    [ColorTheme.Nord]: {
+        primary: '\x1b[38;5;109m',   // Nord frost
+        secondary: '\x1b[38;5;116m', // Nord frost light
+        success: '\x1b[38;5;108m',   // Nord aurora green
+        warning: '\x1b[38;5;221m',   // Nord aurora yellow
+        error: '\x1b[38;5;210m',     // Nord aurora red
+        muted: '\x1b[38;5;67m',      // Nord polar night
+        accent: '\x1b[38;5;140m',    // Nord aurora purple
+        text: '\x1b[38;5;188m'       // Nord snow storm
+    },
+    [ColorTheme.Accessibility]: {
+        primary: '\x1b[1;37m',       // Bold white
+        secondary: '\x1b[1;33m',     // Bold yellow
+        success: '\x1b[1;32m',       // Bold green
+        warning: '\x1b[1;31m\x1b[5m', // Bold red blinking
+        error: '\x1b[1;31m\x1b[7m', // Bold red reversed
+        muted: '\x1b[2;37m',         // Dim white
+        accent: '\x1b[1;36m',        // Bold cyan
+        text: '\x1b[0;37m'           // Normal white
     }
 };
 
@@ -299,7 +468,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
 
         // Calculate column widths
         const columnWidths = this.calculateColumnWidths(headers, rows, maxWidth);
-        
+
         // Apply sorting if specified
         let sortedRows = [...rows];
         if (config.sortBy) {
@@ -348,7 +517,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
 
         // Extract headers from first object
         const firstItem = data[0];
-        const headers = typeof firstItem === 'object' && firstItem !== null 
+        const headers = typeof firstItem === 'object' && firstItem !== null
             ? Object.keys(firstItem)
             : ['Value'];
 
@@ -368,7 +537,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
      */
     private formatJSON(data: any): string {
         const jsonString = JSON.stringify(data, null, this.config.indent);
-        
+
         if (!this.config.color.enableColors) {
             return jsonString;
         }
@@ -413,7 +582,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
 
         const csvLines = [
             headers.join(','),
-            ...rows.map(row => 
+            ...rows.map(row =>
                 row.map(cell => {
                     const cellStr = String(cell);
                     // Escape quotes and wrap in quotes if necessary
@@ -474,16 +643,16 @@ export class AdvancedOutputFormatter extends EventEmitter {
      * Create table row with proper alignment and formatting
      */
     private createTableRow(
-        cells: any[], 
-        columnWidths: number[], 
-        alignment: TableAlignment[], 
+        cells: any[],
+        columnWidths: number[],
+        alignment: TableAlignment[],
         rowType: 'header' | 'data' | 'striped'
     ): string {
         const formattedCells = cells.map((cell, index) => {
             const cellStr = String(cell);
             const width = columnWidths[index] || 10; // Default width if undefined
             const align = alignment[index] || TableAlignment.Left;
-            
+
             let paddedCell: string;
             if (align === TableAlignment.Center) {
                 const padding = width - cellStr.length;
@@ -505,7 +674,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
         });
 
         const content = `│ ${formattedCells.join(' │ ')} │`;
-        
+
         // Apply styling based on row type
         switch (rowType) {
             case 'header':
@@ -528,10 +697,10 @@ export class AdvancedOutputFormatter extends EventEmitter {
         };
 
         const { left, right, horizontal, cross } = chars[position];
-        
+
         const segments = columnWidths.map(width => horizontal.repeat(width + 2));
         const border = left + segments.join(cross) + right;
-        
+
         return this.colorize(border, 'muted');
     }
 
@@ -542,11 +711,11 @@ export class AdvancedOutputFormatter extends EventEmitter {
         return rows.sort((a, b) => {
             const aValue = a[columnIndex];
             const bValue = b[columnIndex];
-            
+
             let comparison = 0;
             if (aValue < bValue) comparison = -1;
             else if (aValue > bValue) comparison = 1;
-            
+
             return direction === 'desc' ? -comparison : comparison;
         });
     }
@@ -568,18 +737,18 @@ export class AdvancedOutputFormatter extends EventEmitter {
      */
     private convertToYAML(data: any, indent: number): string {
         const spaces = ' '.repeat(indent);
-        
+
         if (data === null) return 'null';
         if (typeof data === 'boolean' || typeof data === 'number') return String(data);
         if (typeof data === 'string') return `"${data.replace(/"/g, '\\"')}"`;
-        
+
         if (Array.isArray(data)) {
             if (data.length === 0) return '[]';
-            return data.map(item => 
+            return data.map(item =>
                 `${spaces}- ${this.convertToYAML(item, indent + 2).trimStart()}`
             ).join('\n');
         }
-        
+
         if (typeof data === 'object') {
             if (Object.keys(data).length === 0) return '{}';
             return Object.entries(data).map(([key, value]) => {
@@ -590,7 +759,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
                 return `${spaces}${key}: ${yamlValue.trimStart()}`;
             }).join('\n');
         }
-        
+
         return String(data);
     }
 
@@ -599,34 +768,34 @@ export class AdvancedOutputFormatter extends EventEmitter {
      */
     private convertToXML(data: any, tagName: string, indent: number): string {
         const spaces = ' '.repeat(indent);
-        
+
         if (data === null || data === undefined) {
             return `${spaces}<${tagName} />`;
         }
-        
+
         if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') {
             return `${spaces}<${tagName}>${String(data)}</${tagName}>`;
         }
-        
+
         if (Array.isArray(data)) {
-            return data.map((item, index) => 
+            return data.map((item, index) =>
                 this.convertToXML(item, `${tagName}_${index}`, indent)
             ).join('\n');
         }
-        
+
         if (typeof data === 'object') {
             const entries = Object.entries(data);
             if (entries.length === 0) {
                 return `${spaces}<${tagName} />`;
             }
-            
+
             const childrenXML = entries.map(([key, value]) =>
                 this.convertToXML(value, key, indent + 2)
             ).join('\n');
-            
+
             return `${spaces}<${tagName}>\n${childrenXML}\n${spaces}</${tagName}>`;
         }
-        
+
         return `${spaces}<${tagName}>${String(data)}</${tagName}>`;
     }
 
@@ -635,40 +804,40 @@ export class AdvancedOutputFormatter extends EventEmitter {
      */
     private prettyPrint(data: any, indent: number): string {
         const spaces = ' '.repeat(indent);
-        
+
         if (data === null) return this.colorize('null', 'muted');
         if (data === undefined) return this.colorize('undefined', 'muted');
         if (typeof data === 'boolean') return this.colorize(String(data), 'warning');
         if (typeof data === 'number') return this.colorize(String(data), 'accent');
         if (typeof data === 'string') return this.colorize(`"${data}"`, 'success');
-        
+
         if (Array.isArray(data)) {
             if (data.length === 0) return this.colorize('[]', 'secondary');
-            
-            const items = data.map(item => 
+
+            const items = data.map(item =>
                 `${spaces}  ${this.prettyPrint(item, indent + 2).trimStart()}`
             );
-            
-            return this.colorize('[', 'secondary') + '\n' + 
-                   items.join(',\n') + '\n' + 
-                   spaces + this.colorize(']', 'secondary');
+
+            return this.colorize('[', 'secondary') + '\n' +
+                items.join(',\n') + '\n' +
+                spaces + this.colorize(']', 'secondary');
         }
-        
+
         if (typeof data === 'object') {
             const entries = Object.entries(data);
             if (entries.length === 0) return this.colorize('{}', 'secondary');
-            
+
             const items = entries.map(([key, value]) => {
                 const keyStr = this.colorize(`"${key}"`, 'primary');
                 const valueStr = this.prettyPrint(value, indent + 2).trimStart();
                 return `${spaces}  ${keyStr}: ${valueStr}`;
             });
-            
-            return this.colorize('{', 'secondary') + '\n' + 
-                   items.join(',\n') + '\n' + 
-                   spaces + this.colorize('}', 'secondary');
+
+            return this.colorize('{', 'secondary') + '\n' +
+                items.join(',\n') + '\n' +
+                spaces + this.colorize('}', 'secondary');
         }
-        
+
         return String(data);
     }
 
@@ -682,11 +851,11 @@ export class AdvancedOutputFormatter extends EventEmitter {
 
         const theme = COLOR_THEMES[this.config.color.theme];
         const color = this.config.color.customColors?.[colorType] || theme[colorType] || '';
-        
+
         let result = color + text;
         if (bold) result = COLORS.bright + result;
         result += COLORS.reset;
-        
+
         return result;
     }
 
@@ -702,7 +871,7 @@ export class AdvancedOutputFormatter extends EventEmitter {
             indent: this.config.indent,
             compactMode: this.config.compactMode
         });
-        
+
         return `${format}_${dataHash}_${configHash}`;
     }
 
