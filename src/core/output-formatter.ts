@@ -77,115 +77,35 @@ export enum TableBorderStyle {
 /**
  * Cell styling configuration
  */
-export interface CellStyle {
-    color?: string;
-    backgroundColor?: string;
-    bold?: boolean;
-    italic?: boolean;
-    underline?: boolean;
-    alignment?: TableAlignment;
-    padding?: number;
-    format?: (value: any) => string;
-}
 
 /**
  * Pagination configuration
  */
-export interface PaginationConfig {
-    pageSize: number;
-    currentPage?: number;
-    showPageInfo?: boolean;
-    showNavigation?: boolean;
-}
 
 /**
  * Streaming configuration
  */
-export interface StreamingConfig {
-    enabled: boolean;
-    chunkSize?: number;
-    bufferSize?: number;
-    compression?: 'gzip' | 'deflate' | 'none';
-    encoding?: 'utf8' | 'base64' | 'hex';
-}
 
 /**
  * Performance configuration
  */
-export interface PerformanceConfig {
-    enableCaching?: boolean;
-    cacheSize?: number;
-    enableProfiling?: boolean;
-    enableMetrics?: boolean;
-    maxProcessingTime?: number;
-    enableWorkers?: boolean;
-}
 
 /**
  * Advanced table configuration with enterprise features
  */
-export interface TableConfig {
-    headers: string[];
-    rows: (string | number | boolean | null | undefined)[][];
-    alignment?: TableAlignment[];
-    maxWidth?: number;
-    minWidth?: number;
-    borders?: boolean;
-    borderStyle?: TableBorderStyle;
-    headerStyle?: CellStyle;
-    rowStyles?: CellStyle[];
-    alternatingRows?: boolean;
-    filterable?: boolean;
-    pagination?: PaginationConfig;
-    responsive?: boolean;
-    virtualized?: boolean;
-    maxRows?: number;
-    striped?: boolean;
-    sortable?: boolean;
-    sortBy?: string;
-    sortDirection?: 'asc' | 'desc';
-    groupBy?: string;
-    aggregations?: Record<string, 'sum' | 'avg' | 'count' | 'min' | 'max'>;
-    exportable?: boolean;
-    selectable?: boolean;
-    searchable?: boolean;
-    freezeHeaders?: boolean;
-    resizable?: boolean;
-}
 
 /**
  * Color configuration
  */
-export interface ColorConfig {
-    theme: ColorTheme;
-    enableColors: boolean;
-    customColors?: Record<string, string>;
-}
 
 /**
  * Output formatter configuration
  */
-export interface OutputFormatterConfig {
-    format: OutputFormat;
-    color: ColorConfig;
-    indent: number;
-    lineWidth: number;
-    compactMode: boolean;
-    includeMetadata: boolean;
-}
 
 /**
  * Formatted output result
  */
-export interface FormattedOutput {
-    content: string;
-    format: OutputFormat;
-    metadata: {
-        lines: number;
-        characters: number;
-        estimatedRenderTime: number;
-        theme: ColorTheme;
-    };
+;
 }
 
 /**
@@ -927,12 +847,11 @@ export class AdvancedOutputFormatter extends EventEmitter {
 /**
  * Global output formatter instance
  */
-export const globalOutputFormatter = new AdvancedOutputFormatter();
 
 /**
  * Convenience functions for quick formatting
  */
-export const formatters = {
+
     table: (data: TableConfig | any[]) => globalOutputFormatter.format(data, OutputFormat.Table),
     json: (data: any) => globalOutputFormatter.format(data, OutputFormat.JSON),
     yaml: (data: any) => globalOutputFormatter.format(data, OutputFormat.YAML),

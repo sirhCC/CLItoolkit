@@ -51,9 +51,13 @@ export type ServiceConstructor<T> = new (...args: any[]) => T;
 export type ServiceFactory<T> = (...args: any[]) => T | Promise<T>;
 
 /**
+ * Custom disposable interface for cleanup
+ */
+
+/**
  * Service scope for managing scoped services
  */
-export interface ServiceScope extends Disposable {
+export interface ServiceScope extends IDisposable {
   /** Get service instance from this scope */
   get<T>(token: ServiceToken<T>): T | Promise<T>;
   /** Check if service is registered in this scope */
@@ -63,26 +67,18 @@ export interface ServiceScope extends Disposable {
 }
 
 /**
- * Disposable interface for cleanup
- */
-export interface Disposable {
-  dispose(): Promise<void> | void;
-}
-
-/**
  * Enhanced dependency injection container with lifecycle management
  */
-export class EnhancedServiceContainer {
-  private readonly registrations = new Map<string, ServiceRegistration>();
-  private readonly singletonInstances = new Map<string, any>();
-  private readonly dependencyGraph = new Map<string, Set<string>>();
-  private readonly scopes = new WeakMap<object, ServiceScope>();
-  private readonly scopedInstances = new Map<string, Map<string, any>>();
-  private scopeCounter = 0;
+export class EnhancedServiceContainer implements IDisposable {
+  private registrations = new Map<string, ServiceRegistration>();
+  private singletonInstances = new Map<string, any>();
+  private scopedInstances = new Map<string, Map<string, any>>();
+  private dependencyGraph = new Map<string, Set<string>>();
   private currentScopeId: string | undefined;
+  private scopeCounter = 0;
 
   /**
-   * Core registration method
+   * Register a service with full configuration
    */
   register<T>(registration: ServiceRegistration<T>): this {
     this.validateDependencies(registration);
@@ -517,11 +513,11 @@ export class EnhancedServiceContainer {
   }
 
   /**
-   * Dispose service instance if it implements Disposable
+   * Dispose service instance if it implements IDisposable
    */
   private async disposeInstance(instance: unknown): Promise<void> {
     if (instance && typeof instance === 'object' && 'dispose' in instance) {
-      const disposable = instance as Disposable;
+      const disposable = instance as IDisposable;
       await disposable.dispose();
     }
   }
@@ -612,4 +608,8 @@ export function Injectable<T>(token?: ServiceToken<T>) {
 // File system service interface
 
 // HTTP client service interface
+
+/**
+ * Common service tokens
+ */
 

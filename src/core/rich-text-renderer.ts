@@ -10,44 +10,7 @@ import { performance } from 'perf_hooks';
 /**
  * Advanced syntax highlighting theme with extended properties
  */
-export interface SyntaxTheme {
-    name: string;
-    description?: string;
-    author?: string;
-    version?: string;
-    colors: {
-        keyword: string;
-        string: string;
-        number: string;
-        comment: string;
-        operator: string;
-        function: string;
-        variable: string;
-        type: string;
-        background: string;
-        foreground: string;
-        highlight: string;
-        selection: string;
-        cursor: string;
-        lineNumber: string;
-        border: string;
-        error: string;
-        warning: string;
-        info: string;
-        success: string;
-        link: string;
-        emphasis: string;
-        strong: string;
-        code: string;
-        blockquote: string;
-        header: string[];
-        list: string;
-        table: {
-            header: string;
-            border: string;
-            cell: string;
-            alternating: string;
-        };
+;
     };
     fonts?: {
         monospace: string;
@@ -64,78 +27,15 @@ export interface SyntaxTheme {
 /**
  * Enhanced markdown rendering options
  */
-export interface MarkdownOptions {
-    colorize?: boolean;
-    theme?: SyntaxTheme | string;
-    width?: number;
-    height?: number;
-    preserveWhitespace?: boolean;
-    enableCodeBlocks?: boolean;
-    enableTables?: boolean;
-    enableLists?: boolean;
-    enableImages?: boolean;
-    enableLinks?: boolean;
-    enableMath?: boolean;
-    enableCharts?: boolean;
-    enableDiagrams?: boolean;
-    enableFootnotes?: boolean;
-    enableTOC?: boolean;
-    enableLineNumbers?: boolean;
-    enableWordWrap?: boolean;
-    tabSize?: number;
-    indentSize?: number;
-    streaming?: boolean;
-    lazy?: boolean;
-    cache?: boolean;
-    performance?: boolean;
-    accessibility?: AccessibilityOptions;
-    interactive?: boolean;
-    animations?: boolean;
-    responsive?: boolean;
-}
 
 /**
  * Accessibility options for rich text
  */
-export interface AccessibilityOptions {
-    screenReader?: boolean;
-    highContrast?: boolean;
-    largeText?: boolean;
-    describedImages?: boolean;
-    tableHeaders?: boolean;
-    skipLinks?: boolean;
-    landmarks?: boolean;
-}
 
 /**
  * Advanced language support with semantic analysis
  */
-export interface LanguageSupport {
-    name: string;
-    aliases: string[];
-    fileExtensions: string[];
-    mimeTypes: string[];
-    keywords: string[];
-    operators: string[];
-    stringDelimiters: string[];
-    commentPatterns: RegExp[];
-    numberPattern: RegExp;
-    functionPattern?: RegExp;
-    classPattern?: RegExp;
-    variablePattern?: RegExp;
-    typePattern?: RegExp;
-    importPattern?: RegExp;
-    decoratorPattern?: RegExp;
-    semanticTokens?: boolean;
-    indentation?: 'spaces' | 'tabs' | 'mixed';
-    brackets: Array<[string, string]>;
-    autoClosing: Array<[string, string]>;
-    surround: Array<[string, string]>;
-    folding?: {
-        markers?: {
-            start: RegExp;
-            end: RegExp;
-        };
+;
         offSide?: boolean;
     };
 }
@@ -143,29 +43,13 @@ export interface LanguageSupport {
 /**
  * Document structure for advanced parsing
  */
-export interface DocumentStructure {
-    type: 'document' | 'section' | 'paragraph' | 'list' | 'table' | 'code' | 'quote' | 'heading';
-    level?: number;
-    content: string;
-    children?: DocumentStructure[];
-    metadata?: Record<string, any>;
-    position?: {
-        start: number;
-        end: number;
-        line: number;
-        column: number;
-    };
+;
 }
 
 /**
  * Rendering context with performance tracking
  */
-export interface RenderingContext {
-    theme: SyntaxTheme;
-    options: MarkdownOptions;
-    width: number;
-    height: number;
-    position: { x: number; y: number };
+;
     performance: {
         startTime: number;
         parseTime?: number;
@@ -182,7 +66,7 @@ export interface RenderingContext {
 /**
  * Built-in syntax themes with modern color palettes
  */
-export const SYNTAX_THEMES: Record<string, SyntaxTheme> = {
+
     dark: {
         keyword: '\x1b[34m',      // Blue
         string: '\x1b[32m',       // Green
@@ -224,7 +108,7 @@ export const SYNTAX_THEMES: Record<string, SyntaxTheme> = {
 /**
  * Language definitions for syntax highlighting
  */
-export const LANGUAGE_DEFINITIONS: Record<string, LanguageSupport> = {
+
     javascript: {
         name: 'JavaScript',
         keywords: [
@@ -656,12 +540,11 @@ export class AdvancedRichTextRenderer extends EventEmitter {
 /**
  * Global rich text renderer instance
  */
-export const globalRichTextRenderer = new AdvancedRichTextRenderer();
 
 /**
  * Convenience functions for quick rendering
  */
-export const richText = {
+
     markdown: (content: string, options?: MarkdownOptions) =>
         globalRichTextRenderer.renderMarkdown(content, options),
 

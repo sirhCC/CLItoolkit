@@ -4,7 +4,7 @@ import {
   ServiceLifetime,
   ServiceToken,
   createServiceToken,
-  Disposable,
+  IDisposable,
   ILogger,
   LoggerToken,
   IFileSystem,
@@ -52,19 +52,17 @@ class AsyncService implements IAsyncService {
   }
 }
 
-class DisposableService implements ITestService, Disposable {
+class DisposableService implements ITestService, IDisposable {
   public disposed = false;
-  
+
   getValue(): string {
     return 'disposable-value';
   }
-  
+
   async dispose(): Promise<void> {
     this.disposed = true;
   }
-}
-
-class CounterService implements ITestService {
+}class CounterService implements ITestService {
   private static instanceCount = 0;
   public readonly instanceId: number;
   
@@ -387,6 +385,7 @@ describe('EnhancedServiceContainer', () => {
   describe('Built-in Service Interfaces', () => {
     it('should support logger service interface', async () => {
       class ConsoleLogger implements ILogger {
+        log(message: string): void { console.log(message); }
         debug(message: string): void { console.debug(message); }
         info(message: string): void { console.info(message); }
         warn(message: string): void { console.warn(message); }
@@ -404,10 +403,10 @@ describe('EnhancedServiceContainer', () => {
     it('should support file system service interface', async () => {
       class MockFileSystem implements IFileSystem {
         async readFile(path: string): Promise<string> { return `content of ${path}`; }
-        async writeFile(path: string, content: string): Promise<void> { /* mock */ }
-        async exists(path: string): Promise<boolean> { return true; }
-        async mkdir(path: string): Promise<void> { /* mock */ }
-        async readDir(path: string): Promise<string[]> { return ['file1.txt', 'file2.txt']; }
+        async writeFile(_: string, __: string): Promise<void> { /* mock */ }
+        async exists(_: string): Promise<boolean> { return true; }
+        async mkdir(_: string): Promise<void> { /* mock */ }
+        async readDir(_: string): Promise<string[]> { return ['file1.txt', 'file2.txt']; }
       }
       
       container.registerSingleton(FileSystemToken, MockFileSystem);

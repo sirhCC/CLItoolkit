@@ -10,7 +10,7 @@ import { performance } from 'perf_hooks';
 /**
  * Extended box drawing characters with international support
  */
-export const BOX_CHARS = {
+
     // Single line
     single: {
         horizontal: '─',
@@ -155,26 +155,11 @@ export enum LayoutDirection {
 /**
  * Responsive breakpoints
  */
-export interface Breakpoints {
-    xs: number;    // Extra small screens
-    sm: number;    // Small screens
-    md: number;    // Medium screens
-    lg: number;    // Large screens
-    xl: number;    // Extra large screens
-    xxl: number;   // Ultra wide screens
-}
 
 /**
  * Enhanced box style configuration with themes and animations
  */
-export interface BoxStyle {
-    borderStyle: keyof typeof BOX_CHARS;
-    padding?: {
-        top?: number;
-        right?: number;
-        bottom?: number;
-        left?: number;
-    };
+;
     margin?: {
         top?: number;
         right?: number;
@@ -193,25 +178,10 @@ export interface BoxStyle {
 /**
  * Layout configuration
  */
-export interface LayoutConfig {
-    direction?: 'horizontal' | 'vertical';
-    wrap?: boolean;
-    gap?: number;
-    justify?: 'start' | 'center' | 'end' | 'space-between' | 'space-around';
-    align?: 'start' | 'center' | 'end' | 'stretch';
-    width?: number;
-    height?: number;
-}
 
 /**
  * Component interface
  */
-export interface UIComponent {
-    type: string;
-    render(width?: number, height?: number): string;
-    getMinWidth(): number;
-    getMinHeight(): number;
-}
 
 /**
  * Text component
@@ -810,12 +780,11 @@ export class AdvancedUIBuilder extends EventEmitter {
 /**
  * Global UI builder instance
  */
-export const globalUIBuilder = new AdvancedUIBuilder();
 
 /**
  * Convenience functions for quick UI creation
  */
-export const ui = {
+
     text: (content: string, style?: Partial<BoxStyle>) =>
         globalUIBuilder.text(content, style),
 

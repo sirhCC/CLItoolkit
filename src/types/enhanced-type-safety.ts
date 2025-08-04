@@ -16,19 +16,10 @@ export type Nominal<T, N extends string> = T & { readonly __nominal: N };
 /**
  * Branded string types for type safety
  */
-export type CommandId = Brand<string, 'CommandId'>;
-export type ServiceId = Brand<string, 'ServiceId'>;
-export type TokenId = Brand<string, 'TokenId'>;
-export type UserId = Brand<string, 'UserId'>;
-export type SessionId = Brand<string, 'SessionId'>;
 
 /**
  * Branded number types for type safety
  */
-export type PositiveInteger = Brand<number, 'PositiveInteger'>;
-export type Port = Brand<number, 'Port'>;
-export type Percentage = Brand<number, 'Percentage'>;
-export type Timestamp = Brand<number, 'Timestamp'>;
 
 /**
  * Exact type utility for strict object matching
@@ -86,12 +77,6 @@ export type PerformantFunction<Args extends readonly unknown[], Return> = {
 /**
  * Type-level performance validation
  */
-export interface PerformanceConstraints {
-    readonly maxExecutionTime: number; // milliseconds
-    readonly maxMemoryUsage: number; // bytes
-    readonly complexity: 'O(1)' | 'O(log n)' | 'O(n)' | 'O(n log n)' | 'O(n²)';
-    readonly cacheability: 'cacheable' | 'non-cacheable';
-}
 
 /**
  * Performance-validated operation type
@@ -105,7 +90,7 @@ export type PerformanceValidatedOperation<T, P extends PerformanceConstraints> =
 /**
  * Branded type factory functions
  */
-export const TypeSafetyFactory = {
+
     /**
      * Create a branded CommandId
      */
@@ -187,7 +172,7 @@ export const TypeSafetyFactory = {
 /**
  * Type guards for branded types
  */
-export const TypeGuards = {
+
     /**
      * Type guard for CommandId
      */
@@ -227,21 +212,7 @@ export const TypeGuards = {
 /**
  * Compile-time validation utilities
  */
-export class CompileTimeValidator {
-    /**
-     * Validate that a type satisfies performance constraints
-     */
-    static validatePerformanceConstraints<T, P extends PerformanceConstraints>(
-        operation: T,
-        constraints: P
-    ): PerformanceValidatedOperation<T, P> {
-        // Compile-time validation happens through TypeScript
-        // Runtime validation can be added here
-        return {
-            operation,
-            constraints,
-            __validated: true as const
-        };
+;
     }
 
     /**
@@ -316,14 +287,6 @@ export interface TypeSafeConfig<T> {
 /**
  * Configuration validator
  */
-export class ConfigValidator {
-    /**
-     * Validate configuration with compile-time and runtime checks
-     */
-    static validate<T>(config: T, validator: (config: T) => boolean): TypeSafeConfig<T> {
-        if (!validator(config)) {
-            throw new Error('Configuration validation failed');
-        }
 
         return {
             value: config,
