@@ -67,6 +67,18 @@ export interface ServiceScope extends IDisposable {
 }
 
 /**
+ * Resolution cache metadata
+ */
+interface ResolutionCache {
+  /** Cached dependency resolution order */
+  dependencyOrder: ServiceToken<any>[];
+  /** Cached implementation type detection */
+  implementationType: 'constructor' | 'factory' | 'instance';
+  /** Cached dependency tokens for quick lookup */
+  dependencyTokens: string[];
+}
+
+/**
  * Enhanced dependency injection container with lifecycle management
  */
 export class EnhancedServiceContainer implements IDisposable {
@@ -76,6 +88,11 @@ export class EnhancedServiceContainer implements IDisposable {
   private dependencyGraph = new Map<string, Set<string>>();
   private currentScopeId: string | undefined;
   private scopeCounter = 0;
+  
+  // Resolution caching
+  private resolutionCache = new Map<string, ResolutionCache>();
+  private constructorCache = new Map<Function, boolean>();
+  private dependencyResolutionCache = new Map<string, any[]>();
 
   /**
    * Register a service with full configuration
@@ -83,6 +100,10 @@ export class EnhancedServiceContainer implements IDisposable {
   register<T>(registration: ServiceRegistration<T>): this {
     this.validateDependencies(registration);
     this.registrations.set(registration.token.id, registration);
+    
+    // Build resolution cache for this service
+    this.buildResolutionCache(registration);
+    
     return this;
   }
 
@@ -205,7 +226,7 @@ export class EnhancedServiceContainer implements IDisposable {
   }
 
   /**
-   * Dispose all singleton instances
+   * Dispose all singleton instances and clear caches
    */
   async dispose(): Promise<void> {
     // Dispose singleton instances
@@ -222,8 +243,14 @@ export class EnhancedServiceContainer implements IDisposable {
     }
     this.scopedInstances.clear();
 
+    // Clear all data
     this.registrations.clear();
     this.dependencyGraph.clear();
+    
+    // Clear caches
+    this.resolutionCache.clear();
+    this.constructorCache.clear();
+    this.dependencyResolutionCache.clear();
   }
 
   /**
@@ -414,60 +441,116 @@ export class EnhancedServiceContainer implements IDisposable {
   }
 
   /**
-   * Create new service instance
+   * Create new service instance (with caching)
    */
   private async createInstance<T>(registration: ServiceRegistration<T>): Promise<T> {
-    // Resolve dependencies
-    const dependencies = await this.resolveDependencies(registration.dependencies || []);
-
-    // Create instance based on implementation type
-    if (typeof registration.implementation === 'function') {
-      if (this.isConstructor(registration.implementation)) {
-        return new (registration.implementation as ServiceConstructor<T>)(...dependencies);
-      } else {
-        const result = (registration.implementation as ServiceFactory<T>)(...dependencies);
-        return result instanceof Promise ? await result : result;
-      }
+    // Get cached resolution metadata
+    const cache = this.resolutionCache.get(registration.token.id);
+    if (!cache) {
+      throw new Error(`Resolution cache not found for service: ${registration.token.id}`);
     }
 
-    // Direct instance
-    return registration.implementation as T;
+    // Resolve dependencies using cache
+    const dependencies = await this.resolveDependenciesWithCache(cache.dependencyOrder);
+
+    // Create instance based on cached implementation type
+    switch (cache.implementationType) {
+      case 'constructor':
+        return new (registration.implementation as ServiceConstructor<T>)(...dependencies);
+      
+      case 'factory':
+        const result = (registration.implementation as ServiceFactory<T>)(...dependencies);
+        return result instanceof Promise ? await result : result;
+      
+      case 'instance':
+      default:
+        return registration.implementation as T;
+    }
   }
 
   /**
-   * Create new service instance synchronously
+   * Create new service instance synchronously (with caching)
    */
   private createInstanceSync<T>(registration: ServiceRegistration<T>): T | Promise<T> {
-    // Resolve dependencies synchronously
-    const dependencies = this.resolveDependenciesSync(registration.dependencies || []);
+    // Get cached resolution metadata
+    const cache = this.resolutionCache.get(registration.token.id);
+    if (!cache) {
+      throw new Error(`Resolution cache not found for service: ${registration.token.id}`);
+    }
+
+    // Resolve dependencies synchronously using cache
+    const dependencies = this.resolveDependenciesSyncWithCache(cache.dependencyOrder);
 
     // If any dependency resolution is async, return promise
     if (dependencies instanceof Promise) {
       return dependencies.then(deps => {
-        if (typeof registration.implementation === 'function') {
-          if (this.isConstructor(registration.implementation)) {
+        switch (cache.implementationType) {
+          case 'constructor':
             return new (registration.implementation as ServiceConstructor<T>)(...deps);
-          } else {
+          
+          case 'factory':
             const result = (registration.implementation as ServiceFactory<T>)(...deps);
             return result instanceof Promise ? result : result;
-          }
+          
+          case 'instance':
+          default:
+            return registration.implementation as T;
         }
-        return registration.implementation as T;
       });
     }
 
-    // Create instance based on implementation type
-    if (typeof registration.implementation === 'function') {
-      if (this.isConstructor(registration.implementation)) {
+    // Create instance based on cached implementation type
+    switch (cache.implementationType) {
+      case 'constructor':
         return new (registration.implementation as ServiceConstructor<T>)(...dependencies);
-      } else {
+      
+      case 'factory':
         const result = (registration.implementation as ServiceFactory<T>)(...dependencies);
         return result instanceof Promise ? result : result;
-      }
+      
+      case 'instance':
+      default:
+        return registration.implementation as T;
+    }
+  }
+
+  /**
+   * Resolve service dependencies (with caching)
+   */
+  private async resolveDependenciesWithCache(dependencies: ServiceToken<any>[]): Promise<any[]> {
+    const cacheKey = this.getDependencyCacheKey(dependencies);
+    
+    // Check if we have a cached result for this exact dependency pattern
+    if (this.dependencyResolutionCache.has(cacheKey)) {
+      // For cached results, we still need to resolve them fresh for transient services
+      // but the resolution order and pattern is cached
+      return this.resolveDependencies(dependencies);
     }
 
-    // Direct instance
-    return registration.implementation as T;
+    // Resolve and cache the pattern (not the instances, just the resolution pattern)
+    const resolved = await this.resolveDependencies(dependencies);
+    this.dependencyResolutionCache.set(cacheKey, resolved);
+    return resolved;
+  }
+
+  /**
+   * Resolve service dependencies synchronously (with caching)
+   */
+  private resolveDependenciesSyncWithCache(dependencies: ServiceToken<any>[]): any[] | Promise<any[]> {
+    const cacheKey = this.getDependencyCacheKey(dependencies);
+    
+    // Check if we have a cached result for this exact dependency pattern
+    if (this.dependencyResolutionCache.has(cacheKey)) {
+      // For cached patterns, use the standard sync resolution
+      return this.resolveDependenciesSync(dependencies);
+    }
+
+    // Resolve and cache the pattern
+    const resolved = this.resolveDependenciesSync(dependencies);
+    if (!(resolved instanceof Promise)) {
+      this.dependencyResolutionCache.set(cacheKey, resolved);
+    }
+    return resolved;
   }
 
   /**
@@ -506,10 +589,48 @@ export class EnhancedServiceContainer implements IDisposable {
   }
 
   /**
-   * Check if function is a constructor
+   * Check if function is a constructor (with caching)
    */
   private isConstructor(fn: Function): boolean {
-    return fn.prototype && fn.prototype.constructor === fn;
+    // Check cache first
+    if (this.constructorCache.has(fn)) {
+      return this.constructorCache.get(fn)!;
+    }
+    
+    // Calculate and cache result
+    const isConstructor = fn.prototype && fn.prototype.constructor === fn;
+    this.constructorCache.set(fn, isConstructor);
+    return isConstructor;
+  }
+
+  /**
+   * Build resolution cache for a service registration
+   */
+  private buildResolutionCache<T>(registration: ServiceRegistration<T>): void {
+    const cache: ResolutionCache = {
+      dependencyOrder: registration.dependencies || [],
+      implementationType: this.getImplementationType(registration.implementation),
+      dependencyTokens: (registration.dependencies || []).map(dep => dep.id)
+    };
+    
+    this.resolutionCache.set(registration.token.id, cache);
+  }
+
+  /**
+   * Get implementation type for caching
+   */
+  private getImplementationType<T>(implementation: ServiceImplementation<T>): 'constructor' | 'factory' | 'instance' {
+    if (typeof implementation === 'function') {
+      return this.isConstructor(implementation) ? 'constructor' : 'factory';
+    }
+    return 'instance';
+  }
+
+  /**
+   * Get cached dependency resolution key
+   */
+  private getDependencyCacheKey(dependencies: ServiceToken<any>[]): string {
+    return dependencies.map(dep => dep.id).sort().join('|');
   }
 
   /**
