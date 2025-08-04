@@ -12,7 +12,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Performance-200%25%20Faster-brightgreen?style=flat-square&logo=rocket" alt="Performance">
   <img src="https://img.shields.io/badge/Memory-40%25%20Less%20Usage-blue?style=flat-square&logo=memory" alt="Memory">
-  <img src="https://img.shields.io/badge/Tests-393%20Passing-success?style=flat-square&logo=check-circle" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-455%20Passing-success?style=flat-square&logo=check-circle" alt="Tests">
   <img src="https://img.shields.io/badge/Progress-99%25%20Complete-orange?style=flat-square&logo=progress" alt="Progress">
 </p>
 
@@ -102,9 +102,10 @@
 
 - ✅ Multi-layer configuration system (CLI args, env vars, config files)
 - ✅ JSON, YAML, and TOML configuration file support
-- ✅ Advanced dependency injection container
+- ✅ Enhanced dependency injection container with service resolution caching
 - ✅ Service lifecycle management (singleton, transient, scoped)
 - ✅ Circular dependency detection and resolution
+- ✅ Resolution metadata caching for enterprise-grade performance
 
 </td>
 </tr>
@@ -169,7 +170,7 @@ Correlation ID support
 <td align="center" width="25%">
 <h4>🧩 Developer Experience</h4>
 Fluent, chainable APIs<br>
-393+ comprehensive tests<br>
+455+ comprehensive tests<br>
 Rich output formatting
 </td>
 <td align="center" width="25%">
@@ -418,16 +419,16 @@ Buffer pooling
 ### 📈 **Test Suite Results**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Tests-393_Passing-success?style=for-the-badge&logo=check-circle" alt="Tests">
-  <img src="https://img.shields.io/badge/Test_Suites-15_Passed-success?style=for-the-badge&logo=test-tube" alt="Test Suites">
+  <img src="https://img.shields.io/badge/Tests-455_Passing-success?style=for-the-badge&logo=check-circle" alt="Tests">
+  <img src="https://img.shields.io/badge/Test_Suites-18_Passed-success?style=for-the-badge&logo=test-tube" alt="Test Suites">
   <img src="https://img.shields.io/badge/Coverage-98%25+-success?style=for-the-badge&logo=codecov" alt="Coverage">
 </p>
 
 **Phase 1 Core Optimizations**
 
-- ✅ **Argument Parsing**: 60-75% faster with object pooling
-- ✅ **Build Speed**: 47% faster TypeScript compilation  
-- ✅ **Memory Efficiency**: Reduced allocations through zero-copy patterns
+- ✅ **Enhanced Service Container**: Advanced dependency injection with resolution caching for enterprise performance
+- ✅ **Service Resolution Caching**: Metadata caching, constructor detection, and dependency pattern optimization
+- ✅ **Memory Efficiency**: Reduced allocations through zero-copy patterns and object pooling
 - ✅ **Bundle Size**: Optimized with tree-shaking and dual exports
 
 </div>
@@ -777,17 +778,27 @@ cli-toolkit-framework/
 │   │   ├── registry.ts      # Command registry interfaces
 │   │   └── validation.ts    # Validation types & schemas
 │   └── index.ts             # Main entry point & exports
-├── 📁 tests/                # Test suites (393 tests)
+├── 📁 tests/                # Test suites (455 tests)
 │   ├── 📁 core/             # Core functionality tests
 │   │   ├── argument-parser.test.ts    # Argument parsing tests (61 tests)
 │   │   ├── base-implementations.test.ts # Base classes tests (26 tests)
 │   │   ├── cli-framework.test.ts       # CLI framework tests (20 tests)
 │   │   └── command-registry.test.ts    # Command registry tests (46 tests)
 │   ├── command-builder.test.ts         # Command builder tests (87 tests)
+│   ├── enhanced-service-container.test.ts # Dependency injection tests (27 tests)
+│   ├── configuration-manager.test.ts  # Configuration system tests (26 tests)
+│   ├── execution-pipeline.test.ts     # Execution pipeline tests (42 tests)
+│   ├── command-executor.test.ts       # Command executor tests (31 tests)
+│   ├── enhanced-cli-framework.test.ts # Enhanced CLI framework tests (21 tests)
+│   ├── error-manager.test.ts          # Error management tests (16 tests)
+│   ├── structured-logger.test.ts      # Logging system tests (22 tests)
+│   ├── enterprise-analytics.test.ts   # Enterprise analytics tests (4 tests)
+│   ├── real-time-performance-scorer.test.ts # Real-time scoring tests (9 tests)
+│   ├── bundle-size-optimization.test.ts # Bundle optimization tests (4 tests)
 │   ├── 📁 helpers/          # Test utilities
-│   │   └── test-utils.test.ts         # Test helper tests
+│   │   └── test-utils.test.ts         # Test helper tests (3 tests)
 │   └── 📁 types/            # Type definition tests
-│       └── command.test.ts             # Command type tests
+│       └── command.test.ts             # Command type tests (5 tests)
 ├── 📁 scripts/              # Development and utility scripts
 │   ├── phase1-summary.js    # Phase 1 optimization summary
 │   ├── simple-perf-test.js  # Performance testing utility
@@ -936,20 +947,30 @@ npm test -- tests/core/command-registry.test.ts
 ### Test Results ✅
 
 ```
-Test Suites: 6 passed, 6 total
-Tests:       153 passed, 153 total
+Test Suites: 18 passed, 18 total
+Tests:       455 passed, 455 total
 Snapshots:   0 total
-Time:        2.745s
+Time:        9.82s
 ```
 
 ### Test Coverage by Component
 
 | Component | Tests | Coverage | Features Tested |
 |-----------|-------|----------|-----------------|
+| **Enhanced Service Container** | 27 tests | 100% | Service registration, lifecycle management, dependency injection, resolution caching |
 | **Argument Parser** | 61 tests | 100% | Tokenization, flag parsing, multi-value options, environment variables |
 | **Command Registry** | 46 tests | 100% | Registration, hierarchy, lazy loading, search, aliases |
 | **Base Implementations** | 26 tests | 100% | Command execution, context creation, result handling |
 | **CLI Framework** | 20 tests | 100% | Command registration, argument parsing, execution flow |
+| **Command Builder** | 87 tests | 100% | Fluent API, validation, argument/option configuration |
+| **Configuration Manager** | 26 tests | 100% | Multi-layer configuration, file support, environment variables |
+| **Execution Pipeline** | 42 tests | 100% | Middleware pipeline, execution flow, error handling |
+| **Command Executor** | 31 tests | 100% | Command execution, timeout handling, cancellation |
+| **Error Management** | 16 tests | 100% | Error classification, recovery, global handling |
+| **Structured Logger** | 22 tests | 100% | Multi-transport logging, performance tracking |
+| **Enterprise Analytics** | 4 tests | 100% | Performance monitoring, alerting, data collection |
+| **Real-time Performance Scorer** | 9 tests | 100% | Real-time scoring, auto-optimization |
+| **Bundle Size Optimization** | 4 tests | 100% | Bundle analysis, size optimization |
 
 ### Test Quality Features
 
@@ -1095,15 +1116,17 @@ Phase 1++ Memory Management Enhancement has been successfully implemented, deliv
   - Configuration precedence resolution and validation
   - Type-safe configuration access with Zod schemas
   - Environment variable transformation and parsing
-- ✅ **Dependency Injection** - Complete Phase 4.2 implementation:
-  - Advanced service container with type-safe registration
+- ✅ **Enhanced Dependency Injection** - Complete Phase 4.2 implementation:
+  - Enhanced service container with service resolution caching
+  - Resolution metadata caching for enterprise performance optimization
+  - Constructor detection caching and dependency pattern optimization
   - Service lifecycle management (singleton, transient, scoped)
   - Circular dependency detection and validation
   - Built-in service interfaces (Logger, FileSystem, HttpClient)
   - Service scope management with automatic disposal
 - ✅ **Type System** - Comprehensive interfaces and type definitions
 - ✅ **Error Handling** - Custom error hierarchy with context
-- ✅ **Testing Suite** - 354 tests with 98%+ coverage (27 DI tests + 26 config tests + 301 core tests)
+- ✅ **Testing Suite** - 455 tests with 98%+ coverage (27 enhanced service container tests + 26 config tests + 402 core tests)
 
 ## 📖 Documentation
 
@@ -1185,7 +1208,7 @@ Zero runtime errors
 <strong>30-50% Faster Development</strong><br>
 VS Code integration<br>
 Hot reload + debugging<br>
-393+ comprehensive tests
+455+ comprehensive tests
 </td>
 </tr>
 </table>
