@@ -27,19 +27,19 @@ interface IAsyncService {
 // Test service implementations with proper signatures for DI
 class TestService implements ITestService {
   private value: string;
-  
+
   constructor(value?: string) {
     this.value = value || 'test-value';
   }
-  
+
   getValue(): string {
     return this.value;
   }
 }
 
 class DependentService implements IDependentService {
-  constructor(private testService: ITestService) {}
-  
+  constructor(private testService: ITestService) { }
+
   getTestValue(): string {
     return `dependent-${this.testService.getValue()}`;
   }
@@ -62,22 +62,22 @@ class DisposableService implements ITestService, IDisposable {
   async dispose(): Promise<void> {
     this.disposed = true;
   }
-}class CounterService implements ITestService {
+} class CounterService implements ITestService {
   private static instanceCount = 0;
   public readonly instanceId: number;
-  
+
   constructor() {
     this.instanceId = ++CounterService.instanceCount;
   }
-  
+
   getValue(): string {
     return `counter-${this.instanceId}`;
   }
-  
+
   static getInstanceCount(): number {
     return this.instanceCount;
   }
-  
+
   static resetCount(): void {
     this.instanceCount = 0;
   }
@@ -105,10 +105,10 @@ describe('EnhancedServiceContainer', () => {
   describe('Service Registration', () => {
     it('should register and resolve transient services', async () => {
       container.registerTransient(TestServiceToken, TestService);
-      
+
       const service1 = await container.get(TestServiceToken);
       const service2 = await container.get(TestServiceToken);
-      
+
       expect(service1).toBeInstanceOf(TestService);
       expect(service2).toBeInstanceOf(TestService);
       expect(service1).not.toBe(service2); // Different instances
@@ -116,10 +116,10 @@ describe('EnhancedServiceContainer', () => {
 
     it('should register and resolve singleton services', async () => {
       container.registerSingleton(TestServiceToken, TestService);
-      
+
       const service1 = await container.get(TestServiceToken);
       const service2 = await container.get(TestServiceToken);
-      
+
       expect(service1).toBeInstanceOf(TestService);
       expect(service2).toBeInstanceOf(TestService);
       expect(service1).toBe(service2); // Same instance
@@ -127,16 +127,16 @@ describe('EnhancedServiceContainer', () => {
 
     it('should register and resolve scoped services', async () => {
       container.registerScoped(CounterServiceToken, CounterService);
-      
+
       await container.withScope(async (scope1) => {
         const service1a = await scope1.get(CounterServiceToken);
         const service1b = await scope1.get(CounterServiceToken);
-        
+
         expect(service1a).toBe(service1b); // Same instance within scope
-        
+
         await container.withScope(async (scope2) => {
           const service2 = await scope2.get(CounterServiceToken);
-          
+
           expect(service2).not.toBe(service1a); // Different instance in different scope
         });
       });
@@ -145,17 +145,17 @@ describe('EnhancedServiceContainer', () => {
     it('should register direct instances', async () => {
       const instance = new TestService('direct-instance');
       container.registerInstance(TestServiceToken, instance);
-      
+
       const service = await container.get(TestServiceToken);
-      
+
       expect(service).toBe(instance);
     });
 
     it('should register services with factory functions', async () => {
       container.registerTransient(TestServiceToken, () => new TestService('factory-value'));
-      
+
       const service = await container.get(TestServiceToken);
-      
+
       expect(service.getValue()).toBe('factory-value');
     });
 
@@ -164,10 +164,10 @@ describe('EnhancedServiceContainer', () => {
         await new Promise(resolve => setTimeout(resolve, 1));
         return new AsyncService();
       });
-      
+
       const service = await container.get(AsyncServiceToken);
       const value = await service.getValueAsync();
-      
+
       expect(value).toBe('async-value');
     });
   });
@@ -176,9 +176,9 @@ describe('EnhancedServiceContainer', () => {
     it('should resolve service dependencies', async () => {
       container.registerSingleton(TestServiceToken, TestService);
       container.registerTransient(DependentServiceToken, DependentService, [TestServiceToken]);
-      
+
       const dependentService = await container.get(DependentServiceToken);
-      
+
       expect(dependentService.getTestValue()).toBe('dependent-test-value');
     });
 
@@ -186,23 +186,23 @@ describe('EnhancedServiceContainer', () => {
       interface IChainService {
         getChain(): string;
       }
-      
+
       class ChainService implements IChainService {
-        constructor(private dependent: IDependentService) {}
-        
+        constructor(private dependent: IDependentService) { }
+
         getChain(): string {
           return `chain-${this.dependent.getTestValue()}`;
         }
       }
-      
+
       const ChainServiceToken = createServiceToken<IChainService>('IChainService');
-      
+
       container.registerSingleton(TestServiceToken, TestService);
       container.registerTransient(DependentServiceToken, DependentService, [TestServiceToken]);
       container.registerTransient(ChainServiceToken, ChainService, [DependentServiceToken]);
-      
+
       const chainService = await container.get(ChainServiceToken);
-      
+
       expect(chainService.getChain()).toBe('chain-dependent-test-value');
     });
 
@@ -210,26 +210,26 @@ describe('EnhancedServiceContainer', () => {
       interface IServiceA {
         getValue(): string;
       }
-      
+
       interface IServiceB {
         getValue(): string;
       }
-      
+
       const ServiceAToken = createServiceToken<IServiceA>('IServiceA');
       const ServiceBToken = createServiceToken<IServiceB>('IServiceB');
-      
+
       class ServiceA implements IServiceA {
-        constructor(private serviceB: IServiceB) {}
+        constructor(private serviceB: IServiceB) { }
         getValue(): string { return this.serviceB.getValue(); }
       }
-      
+
       class ServiceB implements IServiceB {
-        constructor(private serviceA: IServiceA) {}
+        constructor(private serviceA: IServiceA) { }
         getValue(): string { return this.serviceA.getValue(); }
       }
-      
+
       container.registerTransient(ServiceAToken, ServiceA, [ServiceBToken]);
-      
+
       expect(() => {
         container.registerTransient(ServiceBToken, ServiceB, [ServiceAToken]);
       }).toThrow('Circular dependency detected');
@@ -239,20 +239,20 @@ describe('EnhancedServiceContainer', () => {
   describe('Service Lifetimes', () => {
     it('should create new instances for transient services', async () => {
       container.registerTransient(CounterServiceToken, CounterService);
-      
+
       const service1 = await container.get(CounterServiceToken);
       const service2 = await container.get(CounterServiceToken);
-      
+
       expect((service1 as CounterService).instanceId).toBe(1);
       expect((service2 as CounterService).instanceId).toBe(2);
     });
 
     it('should reuse instances for singleton services', async () => {
       container.registerSingleton(CounterServiceToken, CounterService);
-      
+
       const service1 = await container.get(CounterServiceToken);
       const service2 = await container.get(CounterServiceToken);
-      
+
       expect((service1 as CounterService).instanceId).toBe(1);
       expect((service2 as CounterService).instanceId).toBe(1);
       expect(service1).toBe(service2);
@@ -260,23 +260,23 @@ describe('EnhancedServiceContainer', () => {
 
     it('should manage scoped service lifetimes correctly', async () => {
       container.registerScoped(CounterServiceToken, CounterService);
-      
+
       let scope1Service1: CounterService;
       let scope1Service2: CounterService;
       let scope2Service: CounterService;
-      
+
       await container.withScope(async (scope1) => {
         scope1Service1 = await scope1.get(CounterServiceToken) as CounterService;
         scope1Service2 = await scope1.get(CounterServiceToken) as CounterService;
-        
+
         expect(scope1Service1.instanceId).toBe(1);
         expect(scope1Service2.instanceId).toBe(1);
         expect(scope1Service1).toBe(scope1Service2);
       });
-      
+
       await container.withScope(async (scope2) => {
         scope2Service = await scope2.get(CounterServiceToken) as CounterService;
-        
+
         expect(scope2Service.instanceId).toBe(2);
         expect(scope2Service).not.toBe(scope1Service1!);
       });
@@ -286,37 +286,37 @@ describe('EnhancedServiceContainer', () => {
   describe('Service Scopes', () => {
     it('should create and dispose service scopes', async () => {
       container.registerScoped(DisposableServiceToken, DisposableService);
-      
+
       let service: DisposableService;
-      
+
       await container.withScope(async (scope) => {
         service = await scope.get(DisposableServiceToken) as DisposableService;
         expect(service.disposed).toBe(false);
       });
-      
+
       expect(service!.disposed).toBe(true);
     });
 
     it('should create child scopes', async () => {
       container.registerScoped(CounterServiceToken, CounterService);
-      
+
       await container.withScope(async (parentScope) => {
         const parentService = await parentScope.get(CounterServiceToken) as CounterService;
-        
+
         const childScope = parentScope.createChildScope();
         const childService = await childScope.get(CounterServiceToken) as CounterService;
-        
+
         expect(parentService.instanceId).toBe(1);
         expect(childService.instanceId).toBe(2);
         expect(parentService).not.toBe(childService);
-        
+
         await childScope.dispose();
       });
     });
 
     it('should throw when accessing scoped service outside scope', async () => {
       container.registerScoped(TestServiceToken, TestService);
-      
+
       await expect(container.get(TestServiceToken)).rejects.toThrow('requested outside of scope');
     });
   });
@@ -324,16 +324,16 @@ describe('EnhancedServiceContainer', () => {
   describe('Synchronous Resolution', () => {
     it('should resolve services synchronously when possible', () => {
       container.registerSingleton(TestServiceToken, TestService);
-      
+
       const service = container.getSync(TestServiceToken);
-      
+
       expect(service).toBeInstanceOf(TestService);
       expect(service.getValue()).toBe('test-value');
     });
 
     it('should throw when trying to resolve async service synchronously', () => {
       container.registerTransient(AsyncServiceToken, async () => new AsyncService());
-      
+
       expect(() => container.getSync(AsyncServiceToken)).toThrow('requires async resolution');
     });
   });
@@ -341,16 +341,16 @@ describe('EnhancedServiceContainer', () => {
   describe('Container Management', () => {
     it('should check if services are registered', () => {
       container.registerTransient(TestServiceToken, TestService);
-      
+
       expect(container.has(TestServiceToken)).toBe(true);
       expect(container.has(DependentServiceToken)).toBe(false);
     });
 
     it('should get registration information', () => {
       container.registerSingleton(TestServiceToken, TestService, []);
-      
+
       const registration = container.getRegistration(TestServiceToken);
-      
+
       expect(registration).toBeDefined();
       expect(registration!.lifetime).toBe(ServiceLifetime.Singleton);
       expect(registration!.token).toBe(TestServiceToken);
@@ -359,9 +359,9 @@ describe('EnhancedServiceContainer', () => {
     it('should list all registered tokens', () => {
       container.registerTransient(TestServiceToken, TestService);
       container.registerSingleton(DependentServiceToken, DependentService, [TestServiceToken]);
-      
+
       const tokens = container.getRegisteredTokens();
-      
+
       expect(tokens).toHaveLength(2);
       expect(tokens).toContain(TestServiceToken);
       expect(tokens).toContain(DependentServiceToken);
@@ -369,10 +369,10 @@ describe('EnhancedServiceContainer', () => {
 
     it('should dispose singleton services on container disposal', async () => {
       container.registerSingleton(DisposableServiceToken, DisposableService);
-      
+
       const service = await container.get(DisposableServiceToken) as DisposableService;
       expect(service.disposed).toBe(false);
-      
+
       await container.dispose();
       expect(service.disposed).toBe(true);
     });
@@ -391,11 +391,11 @@ describe('EnhancedServiceContainer', () => {
         warn(message: string): void { console.warn(message); }
         error(message: string): void { console.error(message); }
       }
-      
+
       container.registerSingleton(LoggerToken, ConsoleLogger);
-      
+
       const logger = await container.get(LoggerToken);
-      
+
       expect(logger).toBeInstanceOf(ConsoleLogger);
       expect(typeof logger.info).toBe('function');
     });
@@ -408,12 +408,12 @@ describe('EnhancedServiceContainer', () => {
         async mkdir(_: string): Promise<void> { /* mock */ }
         async readDir(_: string): Promise<string[]> { return ['file1.txt', 'file2.txt']; }
       }
-      
+
       container.registerSingleton(FileSystemToken, MockFileSystem);
-      
+
       const fs = await container.get(FileSystemToken);
       const content = await fs.readFile('test.txt');
-      
+
       expect(content).toBe('content of test.txt');
     });
   });
@@ -421,9 +421,9 @@ describe('EnhancedServiceContainer', () => {
   describe('Edge Cases', () => {
     it('should handle services with no dependencies', async () => {
       container.registerTransient(TestServiceToken, TestService, []);
-      
+
       const service = await container.get(TestServiceToken);
-      
+
       expect(service).toBeInstanceOf(TestService);
     });
 
@@ -432,9 +432,9 @@ describe('EnhancedServiceContainer', () => {
       container.registerTransient(DependentServiceToken, (testService: ITestService) => {
         return new DependentService(testService);
       }, [TestServiceToken]);
-      
+
       const service = await container.get(DependentServiceToken);
-      
+
       expect(service.getTestValue()).toBe('dependent-test-value');
     });
 
@@ -444,9 +444,9 @@ describe('EnhancedServiceContainer', () => {
         await new Promise(resolve => setTimeout(resolve, 1));
         return new DependentService(testService);
       }, [TestServiceToken]);
-      
+
       const service = await container.get(DependentServiceToken);
-      
+
       expect(service.getTestValue()).toBe('dependent-test-value');
     });
   });

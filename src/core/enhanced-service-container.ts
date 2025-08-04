@@ -88,7 +88,7 @@ export class EnhancedServiceContainer implements IDisposable {
   private dependencyGraph = new Map<string, Set<string>>();
   private currentScopeId: string | undefined;
   private scopeCounter = 0;
-  
+
   // Resolution caching
   private resolutionCache = new Map<string, ResolutionCache>();
   private constructorCache = new Map<Function, boolean>();
@@ -100,10 +100,10 @@ export class EnhancedServiceContainer implements IDisposable {
   register<T>(registration: ServiceRegistration<T>): this {
     this.validateDependencies(registration);
     this.registrations.set(registration.token.id, registration);
-    
+
     // Build resolution cache for this service
     this.buildResolutionCache(registration);
-    
+
     return this;
   }
 
@@ -246,7 +246,7 @@ export class EnhancedServiceContainer implements IDisposable {
     // Clear all data
     this.registrations.clear();
     this.dependencyGraph.clear();
-    
+
     // Clear caches
     this.resolutionCache.clear();
     this.constructorCache.clear();
@@ -457,11 +457,11 @@ export class EnhancedServiceContainer implements IDisposable {
     switch (cache.implementationType) {
       case 'constructor':
         return new (registration.implementation as ServiceConstructor<T>)(...dependencies);
-      
+
       case 'factory':
         const result = (registration.implementation as ServiceFactory<T>)(...dependencies);
         return result instanceof Promise ? await result : result;
-      
+
       case 'instance':
       default:
         return registration.implementation as T;
@@ -487,11 +487,11 @@ export class EnhancedServiceContainer implements IDisposable {
         switch (cache.implementationType) {
           case 'constructor':
             return new (registration.implementation as ServiceConstructor<T>)(...deps);
-          
+
           case 'factory':
             const result = (registration.implementation as ServiceFactory<T>)(...deps);
             return result instanceof Promise ? result : result;
-          
+
           case 'instance':
           default:
             return registration.implementation as T;
@@ -503,11 +503,11 @@ export class EnhancedServiceContainer implements IDisposable {
     switch (cache.implementationType) {
       case 'constructor':
         return new (registration.implementation as ServiceConstructor<T>)(...dependencies);
-      
+
       case 'factory':
         const result = (registration.implementation as ServiceFactory<T>)(...dependencies);
         return result instanceof Promise ? result : result;
-      
+
       case 'instance':
       default:
         return registration.implementation as T;
@@ -519,7 +519,7 @@ export class EnhancedServiceContainer implements IDisposable {
    */
   private async resolveDependenciesWithCache(dependencies: ServiceToken<any>[]): Promise<any[]> {
     const cacheKey = this.getDependencyCacheKey(dependencies);
-    
+
     // Check if we have a cached result for this exact dependency pattern
     if (this.dependencyResolutionCache.has(cacheKey)) {
       // For cached results, we still need to resolve them fresh for transient services
@@ -538,7 +538,7 @@ export class EnhancedServiceContainer implements IDisposable {
    */
   private resolveDependenciesSyncWithCache(dependencies: ServiceToken<any>[]): any[] | Promise<any[]> {
     const cacheKey = this.getDependencyCacheKey(dependencies);
-    
+
     // Check if we have a cached result for this exact dependency pattern
     if (this.dependencyResolutionCache.has(cacheKey)) {
       // For cached patterns, use the standard sync resolution
@@ -596,7 +596,7 @@ export class EnhancedServiceContainer implements IDisposable {
     if (this.constructorCache.has(fn)) {
       return this.constructorCache.get(fn)!;
     }
-    
+
     // Calculate and cache result
     const isConstructor = fn.prototype && fn.prototype.constructor === fn;
     this.constructorCache.set(fn, isConstructor);
@@ -612,7 +612,7 @@ export class EnhancedServiceContainer implements IDisposable {
       implementationType: this.getImplementationType(registration.implementation),
       dependencyTokens: (registration.dependencies || []).map(dep => dep.id)
     };
-    
+
     this.resolutionCache.set(registration.token.id, cache);
   }
 
