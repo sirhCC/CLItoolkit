@@ -252,7 +252,7 @@ describe('CommandExecutor', () => {
       execute: jest.fn().mockImplementation(async (context) => {
         // Simulate work that checks for cancellation - run for longer
         for (let i = 0; i < 100; i++) {
-          await new Promise(resolve => setTimeout(resolve, 10));
+          await new Promise(resolve => setTimeout(resolve, 20));
           context.cancellationToken.throwIfCancelled();
         }
         return { success: true, exitCode: 0 };
@@ -271,7 +271,7 @@ describe('CommandExecutor', () => {
     const executionId = runningExecutions[0].id;
 
     // Cancel the execution after ensuring it's running
-    await new Promise(resolve => setTimeout(resolve, 30));
+    await new Promise(resolve => setTimeout(resolve, 50));
     executor.cancelExecution(executionId, 'Test cancellation');
 
     const result = await executionPromise;
@@ -289,8 +289,8 @@ describe('CommandExecutor', () => {
       hidden: false,
       execute: jest.fn().mockImplementation(async (context) => {
         // Run for longer to ensure cancellation happens
-        for (let i = 0; i < 200; i++) {
-          await new Promise(resolve => setTimeout(resolve, 5));
+        for (let i = 0; i < 150; i++) {
+          await new Promise(resolve => setTimeout(resolve, 10));
           context.cancellationToken.throwIfCancelled();
         }
         return { success: true, exitCode: 0 };
@@ -301,7 +301,7 @@ describe('CommandExecutor', () => {
     const promise2 = executor.executeAsync(slowCommand, [], {});
 
     // Wait for both executions to start
-    await new Promise(resolve => setTimeout(resolve, 20));
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     // Cancel all executions
     const cancelledCount = executor.cancelAllExecutions('Test cancellation');

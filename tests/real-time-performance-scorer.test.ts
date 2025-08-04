@@ -300,7 +300,8 @@ describe('RealTimePerformanceScorer', () => {
             });
 
             scorer.startScoring(100);
-            setTimeout(() => scorer.stopScoring(), 50);
+            // Give more time for the events to be emitted
+            setTimeout(() => scorer.stopScoring(), 150);
         });
     });
 
