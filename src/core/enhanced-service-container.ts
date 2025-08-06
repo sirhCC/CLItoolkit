@@ -27,6 +27,10 @@ export interface ServiceRegistration<T = any> {
 }
 
 /**
+ * Interface for disposable resources
+ */
+
+/**
  * Service token for type-safe service identification
  */
 export interface ServiceToken<T = any> {
