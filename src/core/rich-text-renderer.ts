@@ -1,6 +1,8 @@
 /**
  * Phase 6: Advanced Rich Text Rendering Engine
- * AI-powered markdown, syntax highlighting, and multi-format document rendering
+ /**
+ * Advanced markdown, syntax highlighting, and multi-format document rendering
+ */
  */
 
 import { EventEmitter } from 'events';
