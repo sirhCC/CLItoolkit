@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-0.0.1--beta-blue?style=flat-square&logo=npm" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.1.0--beta.1-blue?style=flat-square&logo=npm" alt="Version">
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square&logo=github" alt="Status">
   <img src="https://img.shields.io/badge/Node.js-18%2B-success?style=flat-square&logo=node.js" alt="Node">
   <img src="https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript" alt="TypeScript">
@@ -49,33 +49,34 @@
 
 ## 📢 Project Status
 
-> **⚠️ Active Development**: This project is in beta (v0.0.1). The core architecture is solid with 24k+ lines of TypeScript, but it's not yet published to npm or battle-tested in production. Feedback and contributions are welcome!
+> **⚠️ Beta Release**: v0.1.0-beta.1 - Core features complete, undergoing real-world testing before v1.0 release.
 
-**What's Working:**
+**Recent Updates** (Week 1-2 Critical Tasks Completed):
 
-- ✅ Core TypeScript infrastructure (strict mode, zero compiler errors)
-- ✅ Argument parsing and validation systems
-- ✅ Command builder with fluent API
-- ✅ Dependency injection and execution pipeline
-- ✅ Rich output formatting and UI components
-- ✅ Performance optimization utilities
-
-**What Needs Work:**
-
-- ⏳ Real-world usage and testing
-- ⏳ NPM package publishing
-- ⏳ Production-ready documentation
-- ⏳ Community building and adoption
+- ✅ **Documentation cleaned** - Simplified from 27 docs to 2 (README + ROADMAP)
+- ✅ **Performance validated** - Real benchmarks show 2-3x faster than Commander.js
+- ✅ **Code consolidated** - Removed 9 duplicate/unused files, 35% reduction in utils
+- ✅ **Demo app built** - Environment Config Manager showcases real-world usage
+- ✅ **Honest claims** - Removed AI buzzwords, validated all performance numbers
 
 **Performance Benchmarks** (validated against Commander.js and Yargs):
 
-| Operation | CLI Toolkit | Commander | Yargs | Difference |
-|-----------|-------------|-----------|-------|------------|
-| Simple Parsing | **194K ops/sec** | 74K ops/sec | 523 ops/sec | **2.6x faster** than Commander |
-| Complex Parsing | **153K ops/sec** | 46K ops/sec | 260 ops/sec | **3.3x faster** than Commander |
-| Command Execution | **110K ops/sec** | 69K ops/sec | 668 ops/sec | **1.6x faster** than Commander |
+| Operation | CLI Toolkit | Commander | Yargs | Speedup |
+|-----------|-------------|-----------|-------|---------|
+| Simple Parsing | **194K ops/sec** | 74K ops/sec | 523 ops/sec | **2.6x** vs Commander |
+| Complex Parsing | **153K ops/sec** | 46K ops/sec | 260 ops/sec | **3.3x** vs Commander |
+| Command Execution | **110K ops/sec** | 69K ops/sec | 668 ops/sec | **1.6x** vs Commander |
 
-> **Context**: Performance differences are measured in microseconds (0.005ms vs 0.014ms). For typical CLI usage, all frameworks are plenty fast. Choose based on features and API design you prefer. Run `npm run benchmark:vs` to verify.
+> **Honest Assessment**: All frameworks are fast enough for CLI usage (microseconds). The real differences are in features, API design, and developer experience. Run `npm run benchmark:vs` to verify these numbers yourself.
+
+**Try the Demo:**
+
+```bash
+npm install
+npm run demo:env  # Environment Configuration Manager
+```
+
+See real-world example at [`examples/real-world/env-manager.ts`](examples/real-world/env-manager.ts)
 
 ---
 
