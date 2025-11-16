@@ -10,17 +10,17 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Performance-200%25%20Faster-brightgreen?style=flat-square&logo=rocket" alt="Performance">
-  <img src="https://img.shields.io/badge/Memory-40%25%20Less%20Usage-blue?style=flat-square&logo=memory" alt="Memory">
-  <img src="https://img.shields.io/badge/Tests-455%20Passing-success?style=flat-square&logo=check-circle" alt="Tests">
-  <img src="https://img.shields.io/badge/Progress-99%25%20Complete-orange?style=flat-square&logo=progress" alt="Progress">
+  <img src="https://img.shields.io/badge/Version-0.0.1--beta-blue?style=flat-square&logo=npm" alt="Version">
+  <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square&logo=github" alt="Status">
+  <img src="https://img.shields.io/badge/Node.js-18%2B-success?style=flat-square&logo=node.js" alt="Node">
+  <img src="https://img.shields.io/badge/TypeScript-5.8-blue?style=flat-square&logo=typescript" alt="TypeScript">
 </p>
 
-<h3 align="center">🎯 Modern • ⚡ Blazing Fast • 🛡️ Type-Safe • 🧠 Memory Optimized</h3>
+<h3 align="center">🎯 Modern • ⚡ Performance-Focused • 🛡️ Type-Safe • 🧠 Developer-Friendly</h3>
 
 <p align="center">
-  <em>A cutting-edge, enterprise-grade CLI toolkit framework built with TypeScript.<br>
-  Create powerful command-line applications with comprehensive parsing, validation, and optimization.</em>
+  <em>A TypeScript CLI framework with advanced features for building sophisticated command-line tools.<br>
+  Currently in active development - feedback and contributions welcome!</em>
 </p>
 
 <p align="center">
@@ -35,15 +35,38 @@
 <div align="center">
   <table>
     <tr>
-      <td align="center"><strong>🚀 Performance</strong><br><sub>70-200% faster</sub></td>
-      <td align="center"><strong>🧠 Memory</strong><br><sub>40% less usage</sub></td>
+      <td align="center"><strong>🚀 Advanced Features</strong><br><sub>Object pooling, DI, middleware</sub></td>
+      <td align="center"><strong>🧠 Developer UX</strong><br><sub>Fluent APIs, rich output</sub></td>
       <td align="center"><strong>🛡️ Type Safety</strong><br><sub>Strict TypeScript</sub></td>
-      <td align="center"><strong>⚡ Enterprise</strong><br><sub>Production ready</sub></td>
+      <td align="center"><strong>⚡ Modern</strong><br><sub>ES2023, async/await</sub></td>
     </tr>
   </table>
 </div>
 
 </div>
+
+---
+
+## 📢 Project Status
+
+> **⚠️ Active Development**: This project is in beta (v0.0.1). The core architecture is solid with 24k+ lines of TypeScript, but it's not yet published to npm or battle-tested in production. Feedback and contributions are welcome!
+
+**What's Working:**
+
+- ✅ Core TypeScript infrastructure (strict mode, zero compiler errors)
+- ✅ Argument parsing and validation systems
+- ✅ Command builder with fluent API
+- ✅ Dependency injection and execution pipeline
+- ✅ Rich output formatting and UI components
+- ✅ Performance optimization utilities
+
+**What Needs Work:**
+
+- ⏳ Performance validation vs competitors (Commander.js, Yargs)
+- ⏳ Real-world usage and testing
+- ⏳ NPM package publishing
+- ⏳ Production-ready documentation
+- ⏳ Community building and adoption
 
 ---
 
@@ -184,16 +207,19 @@ Zero security vulnerabilities
 
 </div>
 
-## ⚡ Performance Optimizations
+## ⚡ Performance Features
 
 <div align="center">
 
-### 🚀 **Benchmark Results**
+### 🚀 **Optimization Systems**
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🚀_Total_Performance-70--200%25_Faster-brightgreen?style=for-the-badge" alt="Total Performance">
-  <img src="https://img.shields.io/badge/🧠_Memory_Usage-40%25_Less-blue?style=for-the-badge" alt="Memory Usage">
-  <img src="https://img.shields.io/badge/⚡_Enterprise_Grade-Production_Ready-orange?style=for-the-badge" alt="Enterprise Grade">
+  <strong>Advanced object pooling • Zero-copy parsing • Memory management • Performance monitoring</strong>
+</p>
+
+<p align="center">
+  <em>Note: Performance benchmarks vs competitors (Commander.js, Yargs) are in progress.<br>
+  Initial internal tests show promising results, but real-world validation is needed.</em>
 </p>
 
 </div>
@@ -806,12 +832,6 @@ cli-toolkit-framework/
 ├── 📁 benchmarks/           # Performance benchmarking
 ├── 📁 examples/             # Usage examples and demos
 │   └── command-builder-demo.ts        # Command builder examples
-├── 📁 docs/                 # Documentation and guides
-│   ├── README.md            # Documentation index
-│   ├── cli_toolkit_guidelines.md      # Development guidelines & roadmap
-│   ├── PHASE_3_1_COMPLETION.md        # Phase 3.1 completion summary
-│   ├── COMMAND_BUILDER_SUMMARY.md     # Command builder technical details
-│   └── PHASE1_ADVANCED_SUMMARY.md     # Phase 1+ optimization summary
 ├── 📁 temp-files/           # Temporary development files (git-ignored)
 │   ├── package.optimized.json         # Experimental package configurations
 │   ├── tsconfig.optimized.json        # Advanced TypeScript experiments
@@ -1051,7 +1071,7 @@ We're following a comprehensive development plan with significant progress made:
 - [x] **Smart Garbage Collection** - Memory pressure monitoring and intelligent GC triggers
 - [x] **Memory Analytics** - Comprehensive memory usage reporting and optimization recommendations
 
-[View Full Roadmap →](./docs/cli_toolkit_guidelines.md#%EF%B8%8F-cli-toolkit-framework-development-roadmap)
+[View Priority Roadmap →](./ROADMAP_PRIORITY.md)
 
 ## 📊 Current Status
 
@@ -1130,13 +1150,13 @@ Phase 1++ Memory Management Enhancement has been successfully implemented, deliv
 
 ## 📖 Documentation
 
-- [Development Guidelines](./docs/cli_toolkit_guidelines.md) - Comprehensive development principles
-- [Roadmap](./docs/cli_toolkit_guidelines.md#roadmap) - 24-week development plan
+- [Priority Roadmap](./ROADMAP_PRIORITY.md) - What needs to be done, in order
 - [API Reference](./src/types/index.ts) - Type definitions and interfaces
+- [Examples](./examples/) - Practical usage examples
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [development guidelines](./docs/cli_toolkit_guidelines.md) for coding standards and architecture principles.
+Contributions welcome! This project is in active development. Check the [roadmap](./ROADMAP_PRIORITY.md) for priorities.
 
 ### Key Principles
 

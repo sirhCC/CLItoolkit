@@ -1,7 +1,7 @@
 {
   "name": "cli-toolkit-framework",
-  "version": "0.0.1",
-  "description": "A modern, extensible, and developer-friendly CLI toolkit framework.",
+  "version": "0.1.0-beta.1",
+  "description": "A modern TypeScript CLI framework with advanced features (In Development)",
   "main": "dist/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
