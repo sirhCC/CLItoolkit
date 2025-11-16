@@ -113,74 +113,8 @@ export {
 } from './utils/memory-manager';
 
 // Phase 6: Output Formatting & UI
-export {
-  AdvancedOutputFormatter,
-  globalOutputFormatter,
-  formatters
-} from './core/output-formatter';
-
-export type {
-  OutputFormatterConfig,
-  ColorTheme,
-  TableConfig,
-  ColorConfig,
-  FormattedOutput
-} from './core/output-formatter';
-
-export {
-  InteractivePrompts,
-  ProgressIndicator,
-  prompts
-} from './core/interactive-ui';
-
-export type {
-  Choice,
-  PromptConfig,
-  ProgressConfig,
-  PromptType,
-  ProgressType
-} from './core/interactive-ui';
-
-export {
-  AdvancedTemplateEngine,
-  globalTemplateEngine,
-  templates
-} from './core/template-engine';
-
-export type {
-  TemplateOptions,
-  TemplateHelper,
-  TemplateContext,
-  CompiledTemplate
-} from './core/template-engine';
-
-export {
-  AdvancedRichTextRenderer,
-  globalRichTextRenderer,
-  richText,
-  SYNTAX_THEMES,
-  LANGUAGE_DEFINITIONS
-} from './core/rich-text-renderer';
-
-export type {
-  SyntaxTheme,
-  MarkdownOptions,
-  LanguageSupport
-} from './core/rich-text-renderer';
-
-export {
-  AdvancedUIBuilder,
-  globalUIBuilder,
-  ui,
-  TextComponent,
-  BoxComponent,
-  LayoutComponent,
-  TableComponent,
-  BOX_CHARS
-} from './core/ui-components';
-
-export type {
-  BoxStyle,
-  LayoutConfig,
-  UIComponent
-} from './core/ui-components';
+// NOTE: Phase 6 features exist but are not exported yet
+// They need proper testing and validation before public release
+// Files: output-formatter.ts, interactive-ui.ts, ui-components.ts,
+//        rich-text-renderer.ts, template-engine.ts
+// Status: In development, not production-ready
