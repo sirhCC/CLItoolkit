@@ -1249,7 +1249,7 @@ Hot reload + debugging<br>
 </p>
 
 <p align="center">
-  <strong>Built with ❤️ and TypeScript for the Node.js community</strong>
+  <strong></strong>
 </p>
 
 </div>
