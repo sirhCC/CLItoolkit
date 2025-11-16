@@ -57,7 +57,8 @@
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\" --cache",
     "validate": "npm run type-check && npm run lint && npm run test && npm run build",
     "perf": "npm run build && node dist/benchmarks/performance.js",
-    "benchmark:vs": "npm run build && node dist/benchmarks/competitor-comparison.js"
+    "benchmark:vs": "npm run build && node dist/benchmarks/competitor-comparison.js",
+    "demo:env": "npm run build && node dist/examples/real-world/env-manager.js"
   },
   "keywords": [
     "cli",
