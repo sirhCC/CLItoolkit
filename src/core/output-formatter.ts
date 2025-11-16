@@ -1,6 +1,8 @@
 /**
  * Phase 6: Advanced Output Formatting System
- * Enterprise-grade formatters with streaming, compression, and AI-powered optimization
+ /**
+ * Enterprise-grade formatters with streaming, compression, and adaptive optimization
+ */
  */
 
 import { EventEmitter } from 'events';
