@@ -1,6 +1,8 @@
 /**
  * Phase 6: Advanced Interactive UI System
- * Enterprise-grade prompts, real-time interactions, and AI-powered UX
+ /**
+ * Enterprise-grade prompts, real-time interactions, and intelligent UX
+ */
  */
 
 import { EventEmitter } from 'events';
