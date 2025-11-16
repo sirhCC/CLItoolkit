@@ -14,6 +14,7 @@ A TypeScript framework for building command-line tools with advanced features li
 ## Status: Beta (v0.1.0-beta.1)
 
 **Working:**
+
 - ✅ Argument parsing (flags, options, subcommands)
 - ✅ Command builder with fluent API
 - ✅ Dependency injection container
@@ -21,6 +22,7 @@ A TypeScript framework for building command-line tools with advanced features li
 - ✅ Performance optimizations (object pooling, zero-copy parsing)
 
 **Needs Work:**
+
 - ⚠️ Not published to npm yet
 - ⚠️ Needs more real-world usage
 - ⚠️ Some features are over-engineered
@@ -90,18 +92,23 @@ const command = new CommandBuilder('create', 'Create new environment')
 ## Key Features
 
 ### Command Builder
+
 Fluent API for building commands with validation and type safety.
 
 ### Argument Parser
+
 Handles flags, options, multi-value arguments, and subcommands.
 
 ### Dependency Injection
+
 Service container with singleton, transient, and scoped lifetimes.
 
 ### Performance
+
 Object pooling, zero-copy parsing, and memory optimization for high-throughput scenarios.
 
 ### Validation
+
 Zod-powered schema validation with custom rules.
 
 ## Project Structure
