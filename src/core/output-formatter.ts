@@ -854,11 +854,11 @@ export class AdvancedOutputFormatter extends EventEmitter {
  * Convenience functions for quick formatting
  */
 
-    table: (data: TableConfig | any[]) => globalOutputFormatter.format(data, OutputFormat.Table),
+table: (data: TableConfig | any[]) => globalOutputFormatter.format(data, OutputFormat.Table),
     json: (data: any) => globalOutputFormatter.format(data, OutputFormat.JSON),
-    yaml: (data: any) => globalOutputFormatter.format(data, OutputFormat.YAML),
-    xml: (data: any) => globalOutputFormatter.format(data, OutputFormat.XML),
-    csv: (data: any[]) => globalOutputFormatter.format(data, OutputFormat.CSV),
-    pretty: (data: any) => globalOutputFormatter.format(data, OutputFormat.Pretty),
-    raw: (data: any) => globalOutputFormatter.format(data, OutputFormat.Raw)
+        yaml: (data: any) => globalOutputFormatter.format(data, OutputFormat.YAML),
+            xml: (data: any) => globalOutputFormatter.format(data, OutputFormat.XML),
+                csv: (data: any[]) => globalOutputFormatter.format(data, OutputFormat.CSV),
+                    pretty: (data: any) => globalOutputFormatter.format(data, OutputFormat.Pretty),
+                        raw: (data: any) => globalOutputFormatter.format(data, OutputFormat.Raw)
 };
