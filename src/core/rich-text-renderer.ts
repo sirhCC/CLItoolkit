@@ -14,16 +14,16 @@ import { performance } from 'perf_hooks';
  */
 ;
     };
-    fonts?: {
-        monospace: string;
-        serif: string;
-        sansSerif: string;
-    };
-    accessibility?: {
-        highContrast: boolean;
-        colorBlindFriendly: boolean;
-        screenReaderOptimized: boolean;
-    };
+fonts ?: {
+    monospace: string;
+    serif: string;
+    sansSerif: string;
+};
+accessibility ?: {
+    highContrast: boolean;
+    colorBlindFriendly: boolean;
+    screenReaderOptimized: boolean;
+};
 }
 
 /**
@@ -38,7 +38,7 @@ import { performance } from 'perf_hooks';
  * Advanced language support with semantic analysis
  */
 ;
-        offSide?: boolean;
+offSide ?: boolean;
     };
 }
 
@@ -52,67 +52,67 @@ import { performance } from 'perf_hooks';
  * Rendering context with performance tracking
  */
 ;
-    performance: {
-        startTime: number;
-        parseTime?: number;
-        renderTime?: number;
-        cacheHits: number;
-        cacheMisses: number;
-    };
-    cache: Map<string, any>;
-    variables: Record<string, any>;
-    includes: string[];
-    macros: Record<string, (args: any[]) => string>;
+performance: {
+    startTime: number;
+    parseTime ?: number;
+    renderTime ?: number;
+    cacheHits: number;
+    cacheMisses: number;
+};
+cache: Map<string, any>;
+variables: Record<string, any>;
+includes: string[];
+macros: Record<string, (args: any[]) => string>;
 }
 
 /**
  * Built-in syntax themes with modern color palettes
  */
 
-    dark: {
-        keyword: '\x1b[34m',      // Blue
+dark: {
+    keyword: '\x1b[34m',      // Blue
         string: '\x1b[32m',       // Green
-        number: '\x1b[33m',       // Yellow
-        comment: '\x1b[90m',      // Gray
-        operator: '\x1b[37m',     // White
-        function: '\x1b[36m',     // Cyan
-        variable: '\x1b[35m',     // Magenta
-        type: '\x1b[31m',         // Red
-        background: '\x1b[40m',   // Black background
-        foreground: '\x1b[97m'    // Bright white
-    },
-    light: {
-        keyword: '\x1b[94m',      // Bright blue
+            number: '\x1b[33m',       // Yellow
+                comment: '\x1b[90m',      // Gray
+                    operator: '\x1b[37m',     // White
+                        function: '\x1b[36m',     // Cyan
+                        variable: '\x1b[35m',     // Magenta
+                            type: '\x1b[31m',         // Red
+                                background: '\x1b[40m',   // Black background
+                                    foreground: '\x1b[97m'    // Bright white
+},
+light: {
+    keyword: '\x1b[94m',      // Bright blue
         string: '\x1b[92m',       // Bright green
-        number: '\x1b[93m',       // Bright yellow
-        comment: '\x1b[90m',      // Gray
-        operator: '\x1b[30m',     // Black
-        function: '\x1b[96m',     // Bright cyan
-        variable: '\x1b[95m',     // Bright magenta
-        type: '\x1b[91m',         // Bright red
-        background: '\x1b[47m',   // White background
-        foreground: '\x1b[30m'    // Black
-    },
-    monokai: {
-        keyword: '\x1b[38;2;249;38;114m',    // Pink
+            number: '\x1b[93m',       // Bright yellow
+                comment: '\x1b[90m',      // Gray
+                    operator: '\x1b[30m',     // Black
+                        function: '\x1b[96m',     // Bright cyan
+                        variable: '\x1b[95m',     // Bright magenta
+                            type: '\x1b[91m',         // Bright red
+                                background: '\x1b[47m',   // White background
+                                    foreground: '\x1b[30m'    // Black
+},
+monokai: {
+    keyword: '\x1b[38;2;249;38;114m',    // Pink
         string: '\x1b[38;2;230;219;116m',    // Yellow
-        number: '\x1b[38;2;174;129;255m',    // Purple
-        comment: '\x1b[38;2;117;113;94m',    // Brown
-        operator: '\x1b[38;2;248;248;242m',  // White
-        function: '\x1b[38;2;166;226;46m',   // Green
-        variable: '\x1b[38;2;248;248;242m',  // White
-        type: '\x1b[38;2;102;217;239m',      // Cyan
-        background: '\x1b[48;2;39;40;34m',   // Dark gray
-        foreground: '\x1b[38;2;248;248;242m' // White
-    }
+            number: '\x1b[38;2;174;129;255m',    // Purple
+                comment: '\x1b[38;2;117;113;94m',    // Brown
+                    operator: '\x1b[38;2;248;248;242m',  // White
+                        function: '\x1b[38;2;166;226;46m',   // Green
+                        variable: '\x1b[38;2;248;248;242m',  // White
+                            type: '\x1b[38;2;102;217;239m',      // Cyan
+                                background: '\x1b[48;2;39;40;34m',   // Dark gray
+                                    foreground: '\x1b[38;2;248;248;242m' // White
+}
 };
 
 /**
  * Language definitions for syntax highlighting
  */
 
-    javascript: {
-        name: 'JavaScript',
+javascript: {
+    name: 'JavaScript',
         keywords: [
             'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue',
             'debugger', 'default', 'delete', 'do', 'else', 'export', 'extends',
@@ -120,13 +120,13 @@ import { performance } from 'perf_hooks';
             'let', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try',
             'typeof', 'var', 'void', 'while', 'with', 'yield'
         ],
-        operators: ['+', '-', '*', '/', '%', '=', '==', '===', '!=', '!==', '<', '>', '<=', '>=', '&&', '||', '!', '?', ':', '=>'],
-        stringDelimiters: ['"', "'", '`'],
-        commentPatterns: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-        numberPattern: /\b\d+(\.\d+)?\b/g
-    },
-    typescript: {
-        name: 'TypeScript',
+            operators: ['+', '-', '*', '/', '%', '=', '==', '===', '!=', '!==', '<', '>', '<=', '>=', '&&', '||', '!', '?', ':', '=>'],
+                stringDelimiters: ['"', "'", '`'],
+                    commentPatterns: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+                        numberPattern: /\b\d+(\.\d+)?\b/g
+},
+typescript: {
+    name: 'TypeScript',
         keywords: [
             'abstract', 'any', 'as', 'async', 'await', 'boolean', 'break', 'case',
             'catch', 'class', 'const', 'continue', 'debugger', 'declare', 'default',
@@ -139,13 +139,13 @@ import { performance } from 'perf_hooks';
             'type', 'typeof', 'undefined', 'union', 'unique', 'unknown', 'var',
             'void', 'while', 'with', 'yield'
         ],
-        operators: ['+', '-', '*', '/', '%', '=', '==', '===', '!=', '!==', '<', '>', '<=', '>=', '&&', '||', '!', '?', ':', '=>', '|', '&'],
-        stringDelimiters: ['"', "'", '`'],
-        commentPatterns: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
-        numberPattern: /\b\d+(\.\d+)?\b/g
-    },
-    python: {
-        name: 'Python',
+            operators: ['+', '-', '*', '/', '%', '=', '==', '===', '!=', '!==', '<', '>', '<=', '>=', '&&', '||', '!', '?', ':', '=>', '|', '&'],
+                stringDelimiters: ['"', "'", '`'],
+                    commentPatterns: [/\/\/.*$/gm, /\/\*[\s\S]*?\*\//g],
+                        numberPattern: /\b\d+(\.\d+)?\b/g
+},
+python: {
+    name: 'Python',
         keywords: [
             'False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await',
             'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
@@ -153,21 +153,21 @@ import { performance } from 'perf_hooks';
             'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try',
             'while', 'with', 'yield'
         ],
-        operators: ['+', '-', '*', '/', '//', '%', '**', '=', '==', '!=', '<', '>', '<=', '>=', 'and', 'or', 'not', 'in', 'is'],
-        stringDelimiters: ['"', "'"],
-        commentPatterns: [/#.*$/gm],
-        numberPattern: /\b\d+(\.\d+)?\b/g
-    },
-    json: {
-        name: 'JSON',
+            operators: ['+', '-', '*', '/', '//', '%', '**', '=', '==', '!=', '<', '>', '<=', '>=', 'and', 'or', 'not', 'in', 'is'],
+                stringDelimiters: ['"', "'"],
+                    commentPatterns: [/#.*$/gm],
+                        numberPattern: /\b\d+(\.\d+)?\b/g
+},
+json: {
+    name: 'JSON',
         keywords: ['true', 'false', 'null'],
-        operators: [':', ','],
-        stringDelimiters: ['"'],
-        commentPatterns: [],
-        numberPattern: /\b-?\d+(\.\d+)?([eE][+-]?\d+)?\b/g
-    },
-    bash: {
-        name: 'Bash',
+            operators: [':', ','],
+                stringDelimiters: ['"'],
+                    commentPatterns: [],
+                        numberPattern: /\b-?\d+(\.\d+)?([eE][+-]?\d+)?\b/g
+},
+bash: {
+    name: 'Bash',
         keywords: [
             'if', 'then', 'else', 'elif', 'fi', 'case', 'esac', 'for', 'while',
             'until', 'do', 'done', 'function', 'select', 'time', 'coproc',
@@ -175,11 +175,11 @@ import { performance } from 'perf_hooks';
             'head', 'tail', 'find', 'xargs', 'chmod', 'chown', 'mkdir', 'rmdir',
             'rm', 'cp', 'mv', 'ln', 'tar', 'gzip', 'gunzip'
         ],
-        operators: ['|', '&', '&&', '||', '>', '>>', '<', '<<', '='],
-        stringDelimiters: ['"', "'"],
-        commentPatterns: [/#.*$/gm],
-        numberPattern: /\b\d+\b/g
-    }
+            operators: ['|', '&', '&&', '||', '>', '>>', '<', '<<', '='],
+                stringDelimiters: ['"', "'"],
+                    commentPatterns: [/#.*$/gm],
+                        numberPattern: /\b\d+\b/g
+}
 };
 
 /**
@@ -547,15 +547,15 @@ export class AdvancedRichTextRenderer extends EventEmitter {
  * Convenience functions for quick rendering
  */
 
-    markdown: (content: string, options?: MarkdownOptions) =>
-        globalRichTextRenderer.renderMarkdown(content, options),
+markdown: (content: string, options?: MarkdownOptions) =>
+    globalRichTextRenderer.renderMarkdown(content, options),
 
     code: (content: string, language?: string, options?: { theme?: SyntaxTheme }) =>
         globalRichTextRenderer.renderCode(content, language, options),
 
-    setTheme: (theme: SyntaxTheme) =>
-        globalRichTextRenderer.setTheme(theme),
+        setTheme: (theme: SyntaxTheme) =>
+            globalRichTextRenderer.setTheme(theme),
 
-    registerLanguage: (name: string, definition: LanguageSupport) =>
-        globalRichTextRenderer.registerLanguage(name, definition)
+            registerLanguage: (name: string, definition: LanguageSupport) =>
+                globalRichTextRenderer.registerLanguage(name, definition)
 };
