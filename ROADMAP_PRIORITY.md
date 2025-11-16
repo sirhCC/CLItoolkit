@@ -126,6 +126,7 @@
 **What Was Built**: Environment Configuration Manager
 
 A practical CLI tool for managing environment configurations across dev/staging/prod:
+
 - **Commands**: create, list, set, export (to bash/powershell/docker)
 - **Features**: Copy configs, verbose output, multiple export formats
 - **Tech**: Uses CommandBuilder, ArgumentParser, DI Container, Zod validation
