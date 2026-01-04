@@ -304,19 +304,6 @@ See [ROADMAP_PRIORITY.md](ROADMAP_PRIORITY.md) for current priorities.
 
 ---
 
-## ⚠️ Honest Assessment
-
-This framework is **legitimately faster** than Commander.js (2-3x) and includes enterprise patterns like DI and middleware that are absent from mainstream CLI libraries.
-
-**However**, the performance difference (microseconds) won't matter for 95% of CLI tools. The complexity is justified for:
-- Large codebases with multiple teams
-- High-throughput automation systems
-- Applications requiring sophisticated service management
-
-For simple CLIs, Commander.js remains the better choice. Use this when you're building a **system**, not just a script.
-
----
-
 ## 📄 License
 
 MIT © 2026
