@@ -392,7 +392,3 @@ This project is in active development. Check the roadmap for priorities. PRs wel
 2. Bug fixes and performance improvements
 3. Documentation improvements
 4. Test coverage for edge cases
-
-## License
-
-MIT © [Your Name]
