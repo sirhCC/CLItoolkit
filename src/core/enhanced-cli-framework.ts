@@ -128,9 +128,26 @@ export class EnhancedCliFramework {
      * Register a command with the CLI
      */
     registerCommand(command: ICommand): this {
-        // Guard clause: validate command
+        // Validate command object
+        if (!command) {
+            throw new Error('Command cannot be null or undefined');
+        }
+        if (typeof command !== 'object') {
+            throw new Error('Command must be an object');
+        }
+
+        // Guard clause: validate command name
         if (!command.name) {
             throw new Error('Command must have a name');
+        }
+        if (typeof command.name !== 'string') {
+            throw new Error('Command name must be a string');
+        }
+        if (command.name.trim().length === 0) {
+            throw new Error('Command name cannot be empty');
+        }
+        if (!/^[a-zA-Z0-9_-]+$/.test(command.name)) {
+            throw new Error(`Invalid command name: '${command.name}' (must contain only alphanumeric characters, hyphens, and underscores)`);
         }
 
         if (this.commands.has(command.name)) {
@@ -142,7 +159,17 @@ export class EnhancedCliFramework {
 
         // Register aliases
         if (command.aliases) {
+            if (!Array.isArray(command.aliases)) {
+                throw new Error(`Command '${command.name}' aliases must be an array`);
+            }
+
             for (const alias of command.aliases) {
+                if (!alias || typeof alias !== 'string' || alias.trim().length === 0) {
+                    throw new Error(`Invalid alias for command '${command.name}': aliases must be non-empty strings`);
+                }
+                if (!/^[a-zA-Z0-9_-]+$/.test(alias)) {
+                    throw new Error(`Invalid alias '${alias}' for command '${command.name}' (must contain only alphanumeric characters, hyphens, and underscores)`);
+                }
                 if (this.aliases.has(alias) || this.commands.has(alias)) {
                     throw new Error(`Alias '${alias}' conflicts with existing command or alias`);
                 }
@@ -164,6 +191,10 @@ export class EnhancedCliFramework {
      * Unregister a command
      */
     unregisterCommand(commandName: string): boolean {
+        if (!commandName || typeof commandName !== 'string') {
+            throw new Error('Command name must be a non-empty string');
+        }
+
         const command = this.commands.get(commandName);
         if (!command) {
             return false;
@@ -189,7 +220,11 @@ export class EnhancedCliFramework {
         return true;
     }
 
-    /**
+    /**if (!nameOrAlias || typeof nameOrAlias !== 'string') {
+            throw new Error('Command name or alias must be a non-empty string');
+        }
+
+        
      * Get a command by name or alias
      */
     getCommand(nameOrAlias: string): ICommand | undefined {
@@ -332,6 +367,26 @@ export class EnhancedCliFramework {
         rawArgs: string[] = [],
         executionOptions: IExecutionOptions = {}
     ): Promise<ICommandResult> {
+        // Validate inputs
+        if (!commandName || typeof commandName !== 'string') {
+            return CommandResult.failure(
+                1,
+                'Command name must be a non-empty string'
+            );
+        }
+        if (!Array.isArray(args)) {
+            return CommandResult.failure(
+                1,
+                'Arguments must be an array'
+            );
+        }
+        if (!options || typeof options !== 'object') {
+            return CommandResult.failure(
+                1,
+                'Options must be an object'
+            );
+        }
+
         // Guard clause: check if command exists
         const command = this.getCommand(commandName);
         if (!command) {
