@@ -102,6 +102,22 @@ export class EnhancedServiceContainer implements IDisposable {
    * Register a service with full configuration
    */
   register<T>(registration: ServiceRegistration<T>): this {
+    if (!registration) {
+      throw new Error('Registration cannot be null or undefined');
+    }
+    if (!registration.token?.id) {
+      throw new Error('Service token must have an id');
+    }
+    if (!registration.implementation) {
+      throw new Error('Service implementation cannot be null or undefined');
+    }
+    if (!Object.values(ServiceLifetime).includes(registration.lifetime)) {
+      throw new Error(`Invalid service lifetime: ${registration.lifetime}`);
+    }
+    if (this.registrations.has(registration.token.id)) {
+      throw new Error(`Service already registered: ${registration.token.id}`);
+    }
+
     this.validateDependencies(registration);
     this.registrations.set(registration.token.id, registration);
 
@@ -175,6 +191,10 @@ export class EnhancedServiceContainer implements IDisposable {
    * Get service instance
    */
   async get<T>(token: ServiceToken<T>): Promise<T> {
+    if (!token?.id) {
+      throw new Error('Service token must have an id');
+    }
+
     const registration = this.registrations.get(token.id);
     if (!registration) {
       throw new Error(`Service not registered: ${token.id}`);
@@ -187,6 +207,10 @@ export class EnhancedServiceContainer implements IDisposable {
    * Get service instance synchronously (throws if async factory)
    */
   getSync<T>(token: ServiceToken<T>): T {
+    if (!token?.id) {
+      throw new Error('Service token must have an id');
+    }
+
     const registration = this.registrations.get(token.id);
     if (!registration) {
       throw new Error(`Service not registered: ${token.id}`);
