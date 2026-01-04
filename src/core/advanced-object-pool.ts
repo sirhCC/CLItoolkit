@@ -25,7 +25,7 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
     private metrics: PoolMetrics;
     private acquisitionTimes: number[] = [];
     private releaseTimes: number[] = [];
-    private optimizationTimer?: NodeJS.Timeout;
+    private optimizationTimer?: ReturnType<typeof setTimeout>;
 
     constructor(
         factory: () => T,
@@ -33,6 +33,17 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
         config: Partial<PoolConfiguration> = {},
         validator?: (obj: T) => boolean
     ) {
+        // Validate required parameters
+        if (!factory || typeof factory !== 'function') {
+            throw new Error('Factory must be a function');
+        }
+        if (!reset || typeof reset !== 'function') {
+            throw new Error('Reset function must be a function');
+        }
+        if (validator && typeof validator !== 'function') {
+            throw new Error('Validator must be a function');
+        }
+
         this.factory = factory;
         this.reset = reset;
         this.validator = validator;
@@ -50,6 +61,32 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
             autoOptimize: true,
             ...config
         };
+
+        // Validate configuration
+        if (this.config.initialSize < 0) {
+            throw new Error('Initial size must be non-negative');
+        }
+        if (this.config.minSize < 0) {
+            throw new Error('Minimum size must be non-negative');
+        }
+        if (this.config.maxSize <= 0) {
+            throw new Error('Maximum size must be positive');
+        }
+        if (this.config.minSize > this.config.maxSize) {
+            throw new Error('Minimum size cannot exceed maximum size');
+        }
+        if (this.config.initialSize > this.config.maxSize) {
+            throw new Error('Initial size cannot exceed maximum size');
+        }
+        if (this.config.growthFactor <= 1) {
+            throw new Error('Growth factor must be greater than 1');
+        }
+        if (this.config.shrinkFactor <= 0 || this.config.shrinkFactor >= 1) {
+            throw new Error('Shrink factor must be between 0 and 1');
+        }
+        if (this.config.optimizationInterval < 0) {
+            throw new Error('Optimization interval must be non-negative');
+        }
 
         // Initialize metrics
         this.metrics = {
@@ -167,10 +204,16 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
      * Release an object back to the pool
      */
     release(obj: T): void {
+        if (!obj) {
+            throw new Error('Cannot release null or undefined object');
+        }
+
         const startTime = this.config.metricsEnabled ? performance.now() : 0;
 
         if (!this.activeObjects.has(obj)) {
-            console.warn('[POOL] Attempting to release object not acquired from this pool');
+            logger.warn('Attempting to release object not acquired from this pool', {
+                operation: 'release'
+            });
             return;
         }
 
@@ -451,6 +494,15 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
      * Resize the pool to a new size
      */
     resize(newSize: number): void {
+        if (typeof newSize !== 'number' || !isFinite(newSize)) {
+            throw new Error('Pool size must be a finite number');
+        }
+        if (newSize < 0) {
+            throw new Error('Pool size must be non-negative');
+        }
+        if (Math.floor(newSize) !== newSize) {
+            throw new Error('Pool size must be an integer');
+        }
         if (newSize < this.config.minSize || newSize > this.config.maxSize) {
             throw new Error(
                 `Invalid pool size: ${newSize} (must be between ${this.config.minSize} and ${this.config.maxSize})`
@@ -477,6 +529,18 @@ export class AdvancedObjectPool<T> implements IObjectPool<T> {
             oldSize: currentSize,
             newSize: this.pool.length
         });
+    }
+
+    /**
+     * Clear the pool
+     */
+    clear(): void {
+        this.pool.length = 0;
+        this.activeObjects.clear();
+        this.objectLifetimes.clear();
+        this.metrics.size = 0;
+        this.metrics.activeObjects = 0;
+        logger.debug('Pool cleared', { operation: 'clear' });
     }
 
     /**
