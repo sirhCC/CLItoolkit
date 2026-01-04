@@ -68,6 +68,37 @@ export {
   PluginError
 } from './types/errors';
 
+// Enhanced error types
+export {
+  ErrorCode,
+  InvalidArgumentError,
+  InvalidOptionError,
+  MissingRequiredError,
+  ExecutionTimeoutError,
+  ExecutionCancelledError,
+  ServiceNotFoundError,
+  CircularDependencyError,
+  PoolExhaustedError,
+  InternalError
+} from './types/enhanced-errors';
+
+export type { ErrorContext } from './types/enhanced-errors';
+
+// Pool types
+export type { IObjectPool, PoolMetrics, PoolConfiguration } from './types/pool';
+
+// Logging
+export {
+  LogLevel,
+  ConsoleLogger,
+  NullLogger,
+  getLogger,
+  setLogger,
+  createLogger
+} from './utils/logger';
+
+export type { ILogger, LogContext } from './utils/logger';
+
 // Performance Optimizations
 export { PerformanceMonitor, monitor, monitorAsync } from './utils/performance';
 
