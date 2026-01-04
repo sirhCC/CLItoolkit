@@ -99,6 +99,22 @@ export {
 
 export type { ILogger, LogContext } from './utils/logger';
 
+// Validation guards
+export {
+  assertDefined,
+  assertNonEmptyString,
+  assertFunction,
+  assertArray,
+  assertObject,
+  assertInRange,
+  assertPositiveInteger,
+  assertPattern,
+  assertEnum,
+  assertValidCommandName,
+  assertValidConfiguration,
+  coerceToType
+} from './utils/validation-guards';
+
 // Performance Optimizations
 export { PerformanceMonitor, monitor, monitorAsync } from './utils/performance';
 
