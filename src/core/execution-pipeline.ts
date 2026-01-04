@@ -5,6 +5,9 @@
 
 import { ICommand, ICommandResult } from '../types/command';
 import { IExecutionContext } from './execution-context';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ExecutionPipeline');
 
 /**
  * Pipeline middleware function interface
@@ -182,24 +185,32 @@ export class LoggingMiddleware implements IMiddleware {
 
     async execute(context: IExecutionContext, next: () => Promise<ICommandResult>): Promise<ICommandResult> {
         if (this.logLevel === 'debug' || this.logLevel === 'info') {
-            console.log(`[${new Date().toISOString()}] Executing command: ${context.command.name}`);
-            console.log(`[${new Date().toISOString()}] Args: ${JSON.stringify(context.args)}`);
-            console.log(`[${new Date().toISOString()}] Options: ${JSON.stringify(context.options)}`);
+            logger.info(`Executing command: ${context.command.name}`, {
+                operation: 'execute',
+                command: context.command.name,
+                args: context.args,
+                options: context.options
+            });
         }
 
         try {
             const result = await next();
 
             if (this.logLevel === 'debug' || this.logLevel === 'info') {
-                console.log(`[${new Date().toISOString()}] Command completed successfully: ${context.command.name}`);
-                console.log(`[${new Date().toISOString()}] Exit code: ${result.exitCode}`);
+                logger.info(`Command completed successfully: ${context.command.name}`, {
+                    operation: 'execute',
+                    command: context.command.name,
+                    exitCode: result.exitCode
+                });
             }
 
             return result;
         } catch (error) {
             if (this.logLevel === 'debug' || this.logLevel === 'info' || this.logLevel === 'warn' || this.logLevel === 'error') {
-                console.error(`[${new Date().toISOString()}] Command failed: ${context.command.name}`);
-                console.error(`[${new Date().toISOString()}] Error:`, error);
+                logger.error(`Command failed: ${context.command.name}`, error instanceof Error ? error : new Error(String(error)), {
+                    operation: 'execute',
+                    command: context.command.name
+                });
             }
             // Return failed result instead of rethrowing
             return {
