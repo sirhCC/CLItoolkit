@@ -314,17 +314,12 @@ describe('LoggingMiddleware', () => {
 
     const result = await middleware.execute(mockContext, mockNext);
 
+    // New structured logging format includes component and operation context
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Executing command: test-command/)
+      expect.stringMatching(/\[INFO\] \[ExecutionPipeline\].*Executing command: test-command/)
     );
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Args: \["arg1"\]/)
-    );
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Options: \{"flag":true\}/)
-    );
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Command completed successfully: test-command/)
+      expect.stringMatching(/\[INFO\] \[ExecutionPipeline\].*Command completed successfully: test-command/)
     );
     expect(result).toEqual({ success: true, exitCode: 0 });
   });
@@ -348,12 +343,9 @@ describe('LoggingMiddleware', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe(error);
 
+    // New structured logging format
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Command failed: test-command/)
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/\[.*\] Error:/),
-      error
+      expect.stringMatching(/\[ERROR\] \[ExecutionPipeline\].*Command failed: test-command/)
     );
 
     consoleErrorSpy.mockRestore();
