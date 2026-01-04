@@ -121,17 +121,6 @@ export { PerformanceMonitor, monitor, monitorAsync } from './utils/performance';
 // Enhanced Performance Monitoring
 export { EnhancedPerformanceMonitor } from './utils/enhanced-performance';
 
-// Real-Time Performance Scoring (Phase 1 - Performance Monitoring Upgrade)
-export {
-  RealTimePerformanceScorer,
-  globalPerformanceScorer
-} from './utils/real-time-performance-scorer';
-
-export type {
-  PerformanceScore,
-  PerformanceScoringCriteria
-} from './utils/real-time-performance-scorer';
-
 // Enterprise Analytics (Phase 1 - Performance Monitoring Upgrade)
 export {
   EnterpriseAnalytics,
