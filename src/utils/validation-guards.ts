@@ -3,7 +3,7 @@
  * Provides reusable validation functions with descriptive error messages
  */
 
-import { InvalidArgumentError, InvalidOptionError, ConfigurationError } from '../types/enhanced-errors';
+import { InvalidArgumentError, ConfigurationError } from '../types/enhanced-errors';
 
 /**
  * Assert that a value is not null or undefined
@@ -20,7 +20,7 @@ export function assertDefined<T>(value: T | null | undefined, paramName: string,
 /**
  * Assert that a value is a non-empty string
  */
-export function assertNonEmptyString(value: unknown, paramName: string, context?: string): asserts value is string {
+export function assertNonEmptyString(value: unknown, paramName: string): asserts value is string {
   if (typeof value !== 'string') {
     throw new InvalidArgumentError(paramName, value, 'must be a string', undefined);
   }
@@ -68,7 +68,7 @@ export function assertObject(value: unknown, paramName: string, context?: string
 /**
  * Assert that a number is within a range
  */
-export function assertInRange(value: number, paramName: string, min: number, max: number, context?: string): void {
+export function assertInRange(value: number, paramName: string, min: number, max: number): void {
   if (typeof value !== 'number' || !isFinite(value)) {
     throw new InvalidArgumentError(paramName, value, 'must be a finite number');
   }
@@ -121,7 +121,7 @@ export function assertEnum<T>(value: T, paramName: string, allowedValues: readon
  * Assert valid command name (alphanumeric, hyphens, underscores)
  */
 export function assertValidCommandName(value: string, context?: string): void {
-  assertNonEmptyString(value, 'command name', context);
+  assertNonEmptyString(value, 'command name');
   if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
     throw new InvalidArgumentError(
       'command name',
