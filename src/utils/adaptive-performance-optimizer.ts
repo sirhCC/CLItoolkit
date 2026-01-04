@@ -5,6 +5,10 @@
  */
 
 import { EventEmitter } from 'events';
+import { IObjectPool } from '../types/pool';
+import { createLogger } from './logger';
+
+const logger = createLogger('AdaptivePerformanceOptimizer');
 import { globalWorkloadAnalyzer, UsageEvent } from './workload-pattern-analyzer';
 import { globalPrefetchEngine } from './smart-prefetching';
 import { globalPoolManager } from '../core/advanced-object-pool';
@@ -56,7 +60,7 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
      * Initialize adaptive performance optimization
      */
     private initialize(): void {
-        console.log('⚡ Initializing Adaptive Performance Optimization');
+        logger.info('Initializing Adaptive Performance Optimization', { operation: 'initialize' });
 
         // Setup workload analysis integration
         if (this.config.enableWorkloadAnalysis) {
@@ -76,7 +80,7 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
         // Start optimization cycle
         this.startOptimizationCycle();
 
-        console.log('✅ Adaptive Performance Optimization initialized');
+        logger.info('Adaptive Performance Optimization initialized', { operation: 'initialize' });
     }
 
     /**
@@ -124,17 +128,17 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
 
         // Add timeout to prevent hanging
         const optimizationTimeout = setTimeout(() => {
-            console.warn('⚠️ Adaptive optimization cycle timed out after 30 seconds');
+            logger.warn('Adaptive optimization cycle timed out after 30 seconds', { operation: 'optimize', timeout: 30000 });
             this.isOptimizing = false;
         }, 30000);
 
         try {
-            console.log('⚡ Applying adaptive optimizations...');
+            logger.info('Applying adaptive optimizations', { operation: 'optimize' });
 
             // Analyze performance trends first
             const trends = this.analyzePerformanceTrends();
             if (trends.degrading.length > 0) {
-                console.log(`⚠️ Performance degradation detected in: ${trends.degrading.join(', ')}`);
+                logger.warn('Performance degradation detected', { operation: 'optimize', degradingCommands: trends.degrading });
 
                 // Apply proactive optimizations for degrading commands
                 const proactiveResults = await this.applyProactiveOptimizations(trends.degrading);
@@ -180,7 +184,7 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
             }
 
         } catch (error) {
-            console.error('[ADAPTIVE-OPT] Optimization failed:', error);
+            logger.error('Optimization failed', error instanceof Error ? error : new Error(String(error)), { operation: 'optimize' });
         } finally {
             clearTimeout(optimizationTimeout);
             this.isOptimizing = false;
@@ -203,9 +207,10 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
             const poolName = command + 'Pool';
             const pool = globalPoolManager.getPool(poolName);
             if (pool && 'resize' in pool && 'getSize' in pool) {
-                const currentSize = (pool as any).getSize();
+                const typedPool = pool as IObjectPool<any>;
+                const currentSize = typedPool.getSize();
                 const newSize = Math.min(currentSize * 1.5, currentSize + 10);
-                (pool as any).resize(newSize);
+                typedPool.resize(newSize);
 
                 results.push({
                     type: 'pattern',
@@ -325,9 +330,10 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
                 // Pool is overutilized, increase size
                 const pool = globalPoolManager.getPool(poolName);
                 if (pool && 'resize' in pool) {
-                    const currentSize = (pool as any).getSize();
+                    const typedPool = pool as IObjectPool<any>;
+                    const currentSize = typedPool.getSize();
                     const newSize = Math.min(currentSize * 1.5, currentSize + 20);
-                    (pool as any).resize(newSize);
+                    typedPool.resize(newSize);
 
                     results.push({
                         type: 'pool',
@@ -341,9 +347,10 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
                 // Pool is underutilized, decrease size
                 const pool = globalPoolManager.getPool(poolName);
                 if (pool && 'resize' in pool) {
-                    const currentSize = (pool as any).getSize();
+                    const typedPool = pool as IObjectPool<any>;
+                    const currentSize = typedPool.getSize();
                     const newSize = Math.max(currentSize * 0.8, 5);
-                    (pool as any).resize(newSize);
+                    typedPool.resize(newSize);
 
                     results.push({
                         type: 'pool',
@@ -410,14 +417,15 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
                         const pool = globalPoolManager.getPool(poolName);
 
                         if (pool && 'getSize' in pool && 'resize' in pool) {
-                            const currentSize = (pool as any).getSize();
+                            const typedPool = pool as IObjectPool<any>;
+                            const currentSize = typedPool.getSize();
                             const optimalSize = Math.max(currentSize, Math.ceil(typed.count * 0.3));
 
                             if (optimalSize > currentSize) {
-                                (pool as any).resize(optimalSize);
+                                typedPool.resize(optimalSize);
                                 totalImprovement += (optimalSize - currentSize) / currentSize * 8;
                                 optimizationsApplied++;
-                                console.log(`🔧 Optimized ${poolName}: ${currentSize} → ${optimalSize}`);
+                                logger.info(`Optimized ${poolName}: ${currentSize} → ${optimalSize}`, { operation: 'hybridOptimization', poolName, currentSize, optimalSize });
                             }
                         }
                     }
@@ -432,9 +440,10 @@ export class AdaptivePerformanceOptimizer extends EventEmitter {
                     // Pool under pressure, needs expansion
                     const pool = globalPoolManager.getPool(poolName);
                     if (pool && 'resize' in pool && 'getSize' in pool) {
-                        const currentSize = (pool as any).getSize();
+                        const typedPool = pool as IObjectPool<any>;
+                        const currentSize = typedPool.getSize();
                         const newSize = Math.min(currentSize * 1.3, currentSize + 15);
-                        (pool as any).resize(newSize);
+                        typedPool.resize(newSize);
                         totalImprovement += 6; // Estimated 6% improvement per optimization
                         optimizationsApplied++;
                     }
