@@ -753,12 +753,34 @@ export function Injectable<T>(token?: ServiceToken<T>) {
  */
 
 // Logger service interface
+export interface ILogger {
+  log(message: string): void;
+  debug(message: string): void;
+  info(message: string): void;
+  warn(message: string): void;
+  error(message: string): void;
+}
 
 // File system service interface
+export interface IFileSystem {
+  readFile(path: string): Promise<string>;
+  writeFile(path: string, content: string): Promise<void>;
+  exists(path: string): Promise<boolean>;
+  mkdir(path: string): Promise<void>;
+  readDir(path: string): Promise<string[]>;
+}
 
 // HTTP client service interface
+export interface IHttpClient {
+  get(url: string): Promise<any>;
+  post(url: string, data: any): Promise<any>;
+  put(url: string, data: any): Promise<any>;
+  delete(url: string): Promise<any>;
+}
 
 /**
  * Common service tokens
  */
-
+export const LoggerToken = createServiceToken<ILogger>('logger', 'Logger service');
+export const FileSystemToken = createServiceToken<IFileSystem>('fileSystem', 'File system service');
+export const HttpClientToken = createServiceToken<IHttpClient>('httpClient', 'HTTP client service');
