@@ -3,47 +3,16 @@
  * Enhanced version of the basic object pool with intelligent management
  */
 
-export interface PoolMetrics {
-    // Basic metrics
-    size: number;
-    maxSize: number;
-    minSize: number;
-    activeObjects: number;
+import { IObjectPool, PoolMetrics, PoolConfiguration } from '../types/pool';
+import { PoolExhaustedError } from '../types/enhanced-errors';
+import { createLogger } from '../utils/logger';
 
-    // Performance metrics
-    hitRate: number;
-    missRate: number;
-    acquisitions: number;
-    releases: number;
-
-    // Efficiency metrics
-    averageLifetime: number;
-    peakUsage: number;
-    growthEvents: number;
-    shrinkEvents: number;
-
-    // Timing metrics
-    averageAcquisitionTime: number;
-    averageReleaseTime: number;
-    lastOptimization: number;
-}
-
-export interface PoolConfiguration {
-    initialSize: number;
-    minSize: number;
-    maxSize: number;
-    growthFactor: number;
-    shrinkFactor: number;
-    optimizationInterval: number;
-    warmupEnabled: boolean;
-    metricsEnabled: boolean;
-    autoOptimize: boolean;
-}
+const logger = createLogger('AdvancedObjectPool');
 
 /**
  * Advanced Object Pool with adaptive sizing and comprehensive analytics
  */
-export class AdvancedObjectPool<T> {
+export class AdvancedObjectPool<T> implements IObjectPool<T> {
     private readonly pool: T[] = [];
     private readonly activeObjects = new Set<T>();
     private readonly objectLifetimes = new Map<T, number>();
@@ -135,7 +104,11 @@ export class AdvancedObjectPool<T> {
 
         if (this.config.metricsEnabled) {
             const warmupTime = performance.now() - startTime;
-            console.debug(`[POOL] Warmed up with ${this.pool.length} objects in ${warmupTime.toFixed(2)}ms`);
+            logger.debug(`Warmed up with ${this.pool.length} objects in ${warmupTime.toFixed(2)}ms`, {
+                operation: 'warmUp',
+                count: this.pool.length,
+                duration: warmupTime
+            });
         }
     }
 
@@ -470,8 +443,40 @@ export class AdvancedObjectPool<T> {
     /**
      * Get current pool size
      */
-    size(): number {
+    getSize(): number {
         return this.pool.length;
+    }
+
+    /**
+     * Resize the pool to a new size
+     */
+    resize(newSize: number): void {
+        if (newSize < this.config.minSize || newSize > this.config.maxSize) {
+            throw new Error(
+                `Invalid pool size: ${newSize} (must be between ${this.config.minSize} and ${this.config.maxSize})`
+            );
+        }
+
+        const currentSize = this.pool.length;
+
+        if (newSize > currentSize) {
+            // Grow the pool
+            for (let i = currentSize; i < newSize; i++) {
+                this.pool.push(this.factory());
+            }
+            this.metrics.growthEvents++;
+        } else if (newSize < currentSize) {
+            // Shrink the pool
+            this.pool.splice(newSize);
+            this.metrics.shrinkEvents++;
+        }
+
+        this.metrics.size = this.pool.length;
+        logger.debug(`Pool resized from ${currentSize} to ${this.pool.length}`, {
+            operation: 'resize',
+            oldSize: currentSize,
+            newSize: this.pool.length
+        });
     }
 
     /**
